@@ -16,7 +16,6 @@
     self.metalView.delegate = self;
     self.metalView.clearColor = MTLClearColorMake(0., 0., 0., 1.);
     [self.view addSubview:self.metalView];
-    // Do any additional setup after loading the view.
 }
 
 
