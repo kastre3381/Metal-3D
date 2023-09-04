@@ -59,15 +59,29 @@ vertex VertexOut vertexMain(const device VertexIn* vertexArray [[buffer(MainBuff
                                 float4(0., 0., (nearFar.y+nearFar.x)/(nearFar.x-nearFar.y), -2.*nearFar.y*nearFar.x/(nearFar.y-nearFar.x)),
                                 float4(0., 0., -1., 0.));
     
+//    float4x4 matProj = (float4x4(float4(2., 0., 0, 0.),
+//                                float4(0., 2., 0, 0.),
+//                                float4(0., 0., -1.22, -2.22),
+//                                float4(0., 0., -1., 0.)));
+    
+//    matProj = transpose(matProj);
+    
    
     float4x4 mat;
-    if(!isPlot)
-        mat = matProj* matTr * matSc * matRotZ * matRotY * matRotX;// * matProj;
-    else
-        mat = float4x4(float4(10., 0., 0., 0.),
-                       float4(0., 10., 0., 0.),
-                       float4(0., 0., 10., 0.),
-                       float4(0., 0., 0., 1.)) * matRotZ * matRotY * matRotX;
+//    if(!isPlot)
+        //mat = matTr * matSc * matRotZ * matRotY * matRotX;
+    
+    mat  = matRotZ * matRotY * matRotX * matTr * matSc;
+    
+    mat = mat * matProj;
+    
+    
+//    else
+//        mat = float4x4(float4(10., 0., 0., 0.),
+//                       float4(0., 10., 0., 0.),
+//                       float4(0., 0., 10., 0.),
+//                       float4(0., 0., 0., 1.)) * matRotZ * matRotY * matRotX;
+    
     
     vertexOut.position = posMain * mat;
 //    mat * posMain;
