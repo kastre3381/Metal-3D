@@ -1,10 +1,3 @@
-//
-//  ViewController.m
-//  Metal3D
-//
-//  Created by MotionVFX on 01/09/2023.
-//
-
 #import "ViewController.h"
 
 @implementation ViewController
@@ -12,9 +5,13 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.device = MTLCreateSystemDefaultDevice();
-    self.metalView = [[MTKView alloc] initWithFrame:CGRectMake(264, 325, 458, 455) device:self.device];
+    self.metalView = [[MTKView alloc] initWithFrame:CGRectMake(44, 20, 766, 766) device:self.device];
     self.metalView.delegate = self;
     self.metalView.clearColor = MTLClearColorMake(0., 0., 0., 1.);
+    _metalView.clearDepth = 1.;
+    _metalView.depthStencilPixelFormat = MTLPixelFormatDepth16Unorm;
+    
+    
     [self.view addSubview:self.metalView];
 }
 
@@ -66,8 +63,8 @@
     projPos[3] = [self.m_projTop floatValue]/100.;
     
     float nearFar[2];
-    nearFar[0] = [self.m_projNear floatValue]/100.;
-    nearFar[1] = [self.m_projFar floatValue]/100.;
+    nearFar[0] = [self.m_projNear floatValue]/10.;
+    nearFar[1] = [self.m_projFar floatValue]/10.;
     
     [self.projLeftTop setStringValue:[NSString stringWithUTF8String:std::to_string(2.*nearFar[0]/(projPos[0]-projPos[1])).substr(0,6).c_str()]];
     [self.projMidLeftTop setStringValue:[NSString stringWithUTF8String:std::to_string(2.*nearFar[0]/(projPos[3]-projPos[2])).substr(0,6).c_str()]];
@@ -79,7 +76,7 @@
 - (IBAction)resetParameters:(id)sender {
     [self.m_TransXSlider setFloatValue:0.];
     [self.m_TransYSlider setFloatValue:0.];
-    [self.m_TransZSlider setFloatValue:0.];
+    [self.m_TransZSlider setFloatValue:-40.];
     [self.m_ScaleXSlider setFloatValue:100.];
     [self.m_ScaleYSlider setFloatValue:100.];
     [self.m_ScaleZSlider setFloatValue:100.];
@@ -105,6 +102,8 @@
     _pipelineDescriptor.fragmentFunction = fragmentFunction;
     _pipelineDescriptor.vertexFunction = vertexFunction;
     _pipelineDescriptor.colorAttachments[0].pixelFormat = self.metalView.colorPixelFormat;
+    _pipelineDescriptor.depthAttachmentPixelFormat = self.metalView.depthStencilPixelFormat;
+    
     self.pipelineState = [self.device newRenderPipelineStateWithDescriptor:_pipelineDescriptor error:&error];
     
     
@@ -231,28 +230,42 @@
     float translation[3];
     translation[0] = [self.m_TransXSlider floatValue]/100.;
     translation[1] = [self.m_TransYSlider floatValue]/100.;
-    translation[2] = [self.m_TransZSlider floatValue]/100.;
+    translation[2] = [self.m_TransZSlider floatValue]/10;
+    
+    printf("| translation[2] = %f\n", translation[2]);
     
     float projPos[4];
     projPos[0] = [self.m_projLeft floatValue]/100.;
     projPos[1] = [self.m_projRight floatValue]/100.;
     projPos[2] = [self.m_projBottom floatValue]/100.;
     projPos[3] = [self.m_projTop floatValue]/100.;
-    
+    printf("| projPos = %f, %f, %f, %f\n", projPos[0], projPos[1], projPos[2], projPos[3]);
     float nearFar[2];
-    nearFar[0] = [self.m_projNear floatValue]/1000.;
-    nearFar[1] = [self.m_projFar floatValue]/1000.;
-    
+    nearFar[0] = [self.m_projNear floatValue]/10.;
+    nearFar[1] = [self.m_projFar floatValue]/10.;
+    printf("| nearFar = %f, %f\n", nearFar[0], nearFar[1]);
     [self updateMatrixValues];
         
     self.vertexBuffer = [self.device newBufferWithBytes:vertices length:sizeof(vertices) options:MTLResourceStorageModeShared];
     
     bool isPlot = true;
     
+    MTLDepthStencilDescriptor *depthDescriptor = [MTLDepthStencilDescriptor new];
+    depthDescriptor.depthCompareFunction = MTLCompareFunctionLessEqual;
+    depthDescriptor.depthWriteEnabled = YES;
+    id<MTLDepthStencilState> depthState = [_device newDepthStencilStateWithDescriptor:depthDescriptor];
+    
     id<MTLCommandBuffer> commandBuffer = [self.device newCommandQueue].commandBuffer;
     MTLRenderPassDescriptor* renderPassDescriptor = view.currentRenderPassDescriptor;
+    
+//    view.currentRenderPassDescriptor.depthAttachment.storeAction = MTLStoreActionStore;
+    
+    renderPassDescriptor.depthAttachment.storeAction = MTLStoreActionStore;
+    
     id<MTLRenderCommandEncoder> renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
     [renderEncoder setRenderPipelineState:self.pipelineState];
+    [renderEncoder setDepthStencilState:depthState];
+    
     [renderEncoder setVertexBytes:angles length:sizeof(float)*4 atIndex:RotationAngles];
     [renderEncoder setVertexBytes:scale length:sizeof(float)*4 atIndex:ScaleFactors];
     [renderEncoder setVertexBytes:translation length:sizeof(float)*4 atIndex:TranslationFactors];

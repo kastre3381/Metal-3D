@@ -58,16 +58,18 @@ vertex VertexOut vertexMain(const device VertexIn* vertexArray [[buffer(MainBuff
                                 float4(0., 2.*nearFar.x/(directions.w-directions.z), (directions.w+directions.z)/(directions.w-directions.z), 0.),
                                 float4(0., 0., (nearFar.y+nearFar.x)/(nearFar.x-nearFar.y), -2.*nearFar.y*nearFar.x/(nearFar.y-nearFar.x)),
                                 float4(0., 0., -1., 0.));
+
     
    
     float4x4 mat;
     if(!isPlot)
-        mat = /*matProj*/ matTr * matSc * matRotZ * matRotY * matRotX * matProj;
+        mat = matRotZ * matRotY * matRotX * matTr * matSc * matProj;
     else
         mat = float4x4(float4(10., 0., 0., 0.),
                        float4(0., 10., 0., 0.),
                        float4(0., 0., 10., 0.),
                        float4(0., 0., 0., 1.)) * matRotZ * matRotY * matRotX;
+    
     
     vertexOut.position = posMain * mat;
 //    mat * posMain;
@@ -76,11 +78,3 @@ vertex VertexOut vertexMain(const device VertexIn* vertexArray [[buffer(MainBuff
     vertexOut.color = vertexArray[vertexID].color;
     return vertexOut;
 }
-
-
-
-
-
-
-
-
