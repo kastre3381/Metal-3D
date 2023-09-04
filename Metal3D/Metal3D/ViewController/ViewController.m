@@ -278,4 +278,68 @@
     
 }
 
+-(void)mouseDragged:(NSEvent *)event
+{
+    NSLog(@"| drag");
+    if(_isRotate)
+    {
+        float tx =  [event locationInWindow].x, ty =  [event locationInWindow].y;
+        if(tx>=44. && tx<=44.+766. && ty>=20. && ty<=20.+766.)
+        {
+            NSPoint currentMouseLocation = [event locationInWindow];
+            float deltaX = currentMouseLocation.x - self.lastMousePosition.x;
+            float deltaY = currentMouseLocation.y - self.lastMousePosition.y;
+
+            [self.m_RotationXSlider setFloatValue:[self.m_RotationXSlider floatValue]+deltaX];
+            [self.m_RotationYSlider setFloatValue:[self.m_RotationYSlider floatValue]+deltaY];
+            
+            self.lastMousePosition = currentMouseLocation;
+        }
+    }
+    if(_isTranslate)
+    {
+        float tx =  [event locationInWindow].x, ty =  [event locationInWindow].y;
+        if(tx>=44. && tx<=44.+766. && ty>=20. && ty<=20.+766.)
+        {
+            tx = (tx-766./2.)/766.*50.;
+            ty = (ty-766./2.)/766.*50.;
+            [self.m_TransXSlider setFloatValue:tx];
+            [self.m_TransYSlider setFloatValue:ty];
+        }
+    }
+}
+
+
+- (void)keyDown:(NSEvent *)event {
+    NSString *characters = [event characters];
+    unichar character = [characters characterAtIndex:0];
+    
+    NSLog(@"| down");
+    if(character == 'w' || character == 'W')
+    {
+        
+        _isTranslate = true;
+    }
+    if(character == 'f' || character == 'F')
+    {
+        _isRotate = true;
+    }
+}
+
+- (void)keyUp:(NSEvent *)event {
+    NSString *characters = [event characters];
+    unichar character = [characters characterAtIndex:0];
+    
+    NSLog(@"| up");
+    
+    if(character == 'w' || character == 'W')
+    {
+        _isTranslate = false;
+    }
+    if(character == 'f' || character == 'F')
+    {
+        _isRotate = false;
+    }
+}
+
 @end

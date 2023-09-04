@@ -73,7 +73,9 @@ typedef struct
 @property (nonatomic, strong) id<MTLDevice> device;
 @property (nonatomic, strong) id<MTLBuffer> vertexBuffer;
 
-
+@property (nonatomic) BOOL isTranslate;
+@property (nonatomic) BOOL isRotate;
+@property (nonatomic) NSPoint lastMousePosition;
 
 @end
 
