@@ -11,32 +11,73 @@ using namespace metal;
 
 vertex VertexOut vertexMain(const device VertexIn* vertexArray [[buffer(MainBuffer)]],
                             unsigned int vertexID [[vertex_id]],
-                            constant float* angles [[buffer(RotationAngles)]],
-                            constant float* scale [[buffer(ScaleFactors)]],
-                            constant float* translation [[buffer(TranslationFactors)]])
+                            constant float3& angles [[buffer(RotationAngles)]],
+                            constant float3& scale [[buffer(ScaleFactors)]],
+                            constant float3& translation [[buffer(TranslationFactors)]],
+                            constant float4& directions [[buffer(ProjectionDirections)]],
+                            constant float2& nearFar [[buffer(NearFar)]],
+                            constant bool& isPlot [[buffer(PlotOnOff)]])
 {
     VertexOut vertexOut;
     
-    auto posMain = vertexArray[vertexID].position;
+    float4 posMain = float4(vertexArray[vertexID].position, 1.);
     
-    float pos1 = cos(angles[1])*cos(angles[2])*posMain[0] +
-                (sin(angles[0])*sin(angles[1])*cos(angles[2]) - cos(angles[0])*sin(angles[2]))*posMain[1] +
-                (cos(angles[0])*sin(angles[1])*cos(angles[2]) + sin(angles[0])*sin(angles[2]))*posMain[2];
+    float4x4 matTr = float4x4(float4(1., 0., 0., translation.x),
+                            float4(0., 1., 0., translation.y),
+                            float4(0., 0., 1., translation.z),
+                            float4(0., 0., 0., 1.));
+
+    float4x4 matSc = float4x4(float4(scale.x, 0., 0., 0.),
+                              float4(0., scale.y, 0., 0.),
+                              float4(0., 0., scale.z, 0.),
+                              float4(0., 0., 0., 1.));
     
-    float pos2 = cos(angles[1])*sin(angles[2])*posMain[0] +
-                (sin(angles[0])*sin(angles[1])*sin(angles[2]) + cos(angles[0])*cos(angles[2]))*posMain[1] +
-                (cos(angles[0])*sin(angles[1])*sin(angles[2]) - sin(angles[0])*cos(angles[2]))*posMain[2];
+    float sinZ = sin(angles.z);
+    float cosZ = cos(angles.z);
     
-    float pos3 = -sin(angles[1])*posMain[0] + sin(angles[0])*cos(angles[1])*posMain[1] + cos(angles[0])*cos(angles[1])*posMain[2];
+    float4x4 matRotZ = float4x4(float4(sinZ, cosZ, 0., 0.),
+                                float4(-cosZ, sinZ, 0., 0.),
+                                float4(0.,      0., 1., 0.),
+                                float4(0.,      0., 0., 1.));
     
-    pos1*=scale[0];
-    pos2*=scale[1];
-    pos3*=scale[2];
+    float sinX = sin(angles.x);
+    float cosX = cos(angles.x);
+    float4x4 matRotX = float4x4(float4(1., 0., 0., 0.),
+                              float4(0., sinX, cosX, 0.),
+                              float4(0., -cosX, sinX, 0.),
+                              float4(0., 0., 0., 1.));
     
-    float w = translation[0]*pos1 + translation[1]*pos2 + translation[2]*pos3 +1.;
+    float sinY = sin(angles.y);
+    float cosY = cos(angles.y);
+    float4x4 matRotY = float4x4(float4(sinY, 0.,  cosY, 0.),
+                                float4(0., 1,     0., 0.),
+                                float4(-cosY, 0., sinY, 0.),
+                                float4(0., 0.,    0., 1.));
     
-    vertexOut.position = float4(pos1, pos2, pos3, w);
+    float4x4 matProj = float4x4(float4(2.*nearFar.x/(directions.y-directions.x), 0., (directions.y+directions.x)/(directions.y-directions.x), 0.),
+                                float4(0., 2.*nearFar.x/(directions.w-directions.z), (directions.w+directions.z)/(directions.w-directions.z), 0.),
+                                float4(0., 0., (nearFar.y+nearFar.x)/(nearFar.x-nearFar.y), -2.*nearFar.y*nearFar.x/(nearFar.y-nearFar.x)),
+                                float4(0., 0., -1., 0.));
+    
+   
+    float4x4 mat;
+    if(!isPlot)
+        mat = /*matProj*/ matTr * matSc * matRotZ * matRotY * matRotX;// * matProj;
+    else
+        mat = matRotZ * matRotY * matRotX;
+    
+    vertexOut.position = posMain * mat;
+//    mat * posMain;
+    
+    //float4(pos1, pos2, pos3, w);
     vertexOut.color = vertexArray[vertexID].color;
     return vertexOut;
 }
+
+
+
+
+
+
+
 

@@ -27,6 +27,9 @@ typedef enum ShaderDefines
     RotationAngles,
     ScaleFactors,
     TranslationFactors,
+    ProjectionDirections,
+    NearFar,
+    PlotOnOff,
 } ShaderDefines;
 
 #endif /* Defines_h */

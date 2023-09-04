@@ -32,6 +32,13 @@ typedef struct
 @property (weak) IBOutlet NSSlider *m_TransXSlider;
 @property (weak) IBOutlet NSSlider *m_TransYSlider;
 @property (weak) IBOutlet NSSlider *m_TransZSlider;
+@property (weak) IBOutlet NSSlider *m_projLeft;
+@property (weak) IBOutlet NSSlider *m_projRight;
+@property (weak) IBOutlet NSSlider *m_projTop;
+@property (weak) IBOutlet NSSlider *m_projNear;
+@property (weak) IBOutlet NSSlider *m_projFar;
+@property (weak) IBOutlet NSSlider *m_projBottom;
+
 
 @property (weak) IBOutlet NSTextField *rotLeftTop;
 @property (weak) IBOutlet NSTextField *rotLeftMid;
@@ -50,6 +57,14 @@ typedef struct
 @property (weak) IBOutlet NSTextField *transX;
 @property (weak) IBOutlet NSTextField *transY;
 @property (weak) IBOutlet NSTextField *transZ;
+
+@property (weak) IBOutlet NSTextField *projLeftTop;
+@property (weak) IBOutlet NSTextField *projMidLeftTop;
+@property (weak) IBOutlet NSTextField *projMidRightTop;
+@property (weak) IBOutlet NSTextField *projMidRightMid;
+@property (weak) IBOutlet NSTextField *projMidRightBot;
+@property (weak) IBOutlet NSTextField *projRightMidBot;
+
 
 @property (nonatomic, strong) MTKView* metalView;
 @property (nonatomic, strong) id<MTLRenderPipelineState> pipelineState;
