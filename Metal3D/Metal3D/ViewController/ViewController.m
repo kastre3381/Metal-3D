@@ -66,8 +66,8 @@
     projPos[3] = [self.m_projTop floatValue]/100.;
     
     float nearFar[2];
-    nearFar[0] = [self.m_projNear floatValue]/10.;
-    nearFar[1] = [self.m_projFar floatValue]/10.;
+    nearFar[0] = [self.m_projNear floatValue]/100.;
+    nearFar[1] = [self.m_projFar floatValue]/100.;
     
     [self.projLeftTop setStringValue:[NSString stringWithUTF8String:std::to_string(2.*nearFar[0]/(projPos[0]-projPos[1])).substr(0,6).c_str()]];
     [self.projMidLeftTop setStringValue:[NSString stringWithUTF8String:std::to_string(2.*nearFar[0]/(projPos[3]-projPos[2])).substr(0,6).c_str()]];
@@ -92,7 +92,7 @@
     [self.m_projBottom setFloatValue:-50.];
     [self.m_projTop setFloatValue:50.];
     [self.m_projNear setFloatValue:10.];
-    [self.m_projFar setFloatValue:0.];
+    [self.m_projFar setFloatValue:100.];
 }
 
 - (void)drawInMTKView:(MTKView *)view
@@ -240,8 +240,8 @@
     projPos[3] = [self.m_projTop floatValue]/100.;
     
     float nearFar[2];
-    nearFar[0] = [self.m_projNear floatValue]/10.;
-    nearFar[1] = [self.m_projFar floatValue]/10.;
+    nearFar[0] = [self.m_projNear floatValue]/1000.;
+    nearFar[1] = [self.m_projFar floatValue]/1000.;
     
     [self updateMatrixValues];
         
