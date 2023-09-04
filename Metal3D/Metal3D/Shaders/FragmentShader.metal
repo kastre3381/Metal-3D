@@ -10,5 +10,11 @@ using namespace metal;
 
 fragment float4 fragmentMain(VertexOut current [[stage_in]])
 {
+//    float near = 10.;
+//    float far  = 100.0;
+//
+//    float z = current.position.z * 2.0 - 1.0; // back to NDC
+//    return float4(float3((2.0 * near * far) / (far + near - z * (far - near)) / far), 1.);
+    
     return current.color;
 }

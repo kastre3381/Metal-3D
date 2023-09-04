@@ -62,9 +62,12 @@ vertex VertexOut vertexMain(const device VertexIn* vertexArray [[buffer(MainBuff
    
     float4x4 mat;
     if(!isPlot)
-        mat = /*matProj*/ matTr * matSc * matRotZ * matRotY * matRotX;// * matProj;
+        mat = matProj* matTr * matSc * matRotZ * matRotY * matRotX;// * matProj;
     else
-        mat = matRotZ * matRotY * matRotX;
+        mat = float4x4(float4(10., 0., 0., 0.),
+                       float4(0., 10., 0., 0.),
+                       float4(0., 0., 10., 0.),
+                       float4(0., 0., 0., 1.)) * matRotZ * matRotY * matRotX;
     
     vertexOut.position = posMain * mat;
 //    mat * posMain;
