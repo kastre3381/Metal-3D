@@ -48,9 +48,9 @@
     [self.scaleRightBot setStringValue:[NSString stringWithUTF8String:std::to_string(scale[2]).substr(0,6).c_str()]];
     
     float translation[3];
-    translation[0] = [self.m_TransXSlider floatValue]/100.;
-    translation[1] = [self.m_TransYSlider floatValue]/100.;
-    translation[2] = [self.m_TransZSlider floatValue]/100.;
+    translation[0] = [self.m_TransXSlider floatValue]/10.;
+    translation[1] = [self.m_TransYSlider floatValue]/10.;
+    translation[2] = [self.m_TransZSlider floatValue]/10.;
     
     [self.transX setStringValue:[NSString stringWithUTF8String:std::to_string(translation[0]).substr(0,6).c_str()]];
     [self.transY setStringValue:[NSString stringWithUTF8String:std::to_string(translation[1]).substr(0,6).c_str()]];
@@ -92,6 +92,8 @@
     [self.m_projFar setFloatValue:100.];
 }
 
+
+
 - (void)drawInMTKView:(MTKView *)view
 {
     NSError* error = nil;
@@ -119,46 +121,6 @@
         {{0., 0., 1000.}, {1.,1.,1.,1.}},
     };
     
-//    Vertex lines[3*2*3*25];
-//
-//    for(int k=0; k<5; k++)
-//    {
-//        for(int j=0; j<5; j++)
-//        {
-//            float alfa = 0.5;
-//            float step = 2./7., start = -6./7.;
-//            if(-6./7.+k*2./7. == 0 && -6./7.+j*2./7. == 0) alfa = 1.;
-//
-//            lines[3*(2*(5*k + j))] = {{-10., -(start+k*step), start+j*step}, {1.,1.,1.,alfa}};
-//            lines[3*(2*(5*k + j)+1)] = {{ 10., start+k*step, start+j*step}, {1.,1.,1.,alfa}};
-//        }
-//    }
-//
-//    for(int k=0; k<5; k++)
-//    {
-//        for(int j=0; j<5; j++)
-//        {
-//            float alfa = 0.5;
-//            float step = 2./7., start = -6./7.;
-//            if(-6./7.+k*2./7. == 0 && -6./7.+j*2./7. == 0) alfa = 1.;
-//
-//            lines[3*(2*(5*k + j)) + 2*3*25] = {{start+k*step,  -10., start+j*step}, {1.,1.,1.,alfa}};
-//            lines[3*(2*(5*k + j)+1) + 2*3*25] = {{start+k*step, 10., start+j*step}, {1.,1.,1.,alfa}};
-//        }
-//    }
-//
-//    for(int k=0; k<5; k++)
-//    {
-//        for(int j=0; j<5; j++)
-//        {
-//            float alfa = 0.5;
-//            float step = 2./7., start = -6./7.;
-//            if(-6./7.+k*2./7. == 0 && -6./7.+j*2./7. == 0) alfa = 1.;
-//
-//            lines[3*(2*(5*k + j)) + 2*2*3*25] = {{start+k*step, start+j*step, -10.}, {1.,1.,1.,alfa}};
-//            lines[3*(2*(5*k + j)+1) + 2*2*3*25] = {{start+k*step, start+j*step, 10.}, {1.,1.,1.,alfa}};
-//        }
-//    }
     
     //cube vertices, the walls that are opposite to each other hhave the same colors
     Vertex vertices[] =
@@ -228,8 +190,8 @@
     scale[2] = [self.m_ScaleZSlider floatValue]/100.;
     
     float translation[3];
-    translation[0] = [self.m_TransXSlider floatValue]/100.;
-    translation[1] = [self.m_TransYSlider floatValue]/100.;
+    translation[0] = [self.m_TransXSlider floatValue]/10.;
+    translation[1] = [self.m_TransYSlider floatValue]/10.;
     translation[2] = [self.m_TransZSlider floatValue]/10;
     
     printf("| translation[2] = %f\n", translation[2]);
@@ -293,8 +255,8 @@
 
 -(void)mouseDragged:(NSEvent *)event
 {
-    NSLog(@"| drag");
-    if(_isRotate)
+    NSLog(@"|x drag");
+    if(true)
     {
         float tx =  [event locationInWindow].x, ty =  [event locationInWindow].y;
         if(tx>=44. && tx<=44.+766. && ty>=20. && ty<=20.+766.)
@@ -309,7 +271,7 @@
             self.lastMousePosition = currentMouseLocation;
         }
     }
-    if(_isTranslate)
+    if(true)
     {
         float tx =  [event locationInWindow].x, ty =  [event locationInWindow].y;
         if(tx>=44. && tx<=44.+766. && ty>=20. && ty<=20.+766.)
@@ -322,12 +284,11 @@
     }
 }
 
-
 - (void)keyDown:(NSEvent *)event {
     NSString *characters = [event characters];
     unichar character = [characters characterAtIndex:0];
     
-    NSLog(@"| down");
+    NSLog(@"|x down");
     if(character == 'w' || character == 'W')
     {
         
@@ -343,7 +304,7 @@
     NSString *characters = [event characters];
     unichar character = [characters characterAtIndex:0];
     
-    NSLog(@"| up");
+    NSLog(@"|x up");
     
     if(character == 'w' || character == 'W')
     {
@@ -354,5 +315,6 @@
         _isRotate = false;
     }
 }
+
 
 @end
