@@ -11,6 +11,14 @@
     _metalView.clearDepth = 1.;
     _metalView.depthStencilPixelFormat = MTLPixelFormatDepth16Unorm;
     
+    [self.comboBox setStringValue:@"Cube"];
+    [self.comboBox addItemWithObjectValue:@"Cube"];
+    [self.comboBox addItemWithObjectValue:@"Sphere"];
+    
+    MTKTextureLoader* textureLoader = [[MTKTextureLoader alloc] initWithDevice:_device];
+    NSURL* textureURL = [[NSBundle mainBundle] URLForResource:@"gossling" withExtension:@"jpeg"];
+    NSError* error = nil;
+    _texture = [textureLoader newTextureWithContentsOfURL:textureURL options:nil error:&error];
     
     [self.view addSubview:self.metalView];
 }
@@ -111,74 +119,16 @@
     
     Vertex lines[] =
     {
-        {{-1000., 0., 0.}, {1.,1.,1.,1.}},
-        {{1000., 0., 0.}, {1.,1.,1.,1.}},
+        {{-1000., 0., 0.}, {0., 0., 0.}, {1.,1.,1.,1.}},
+        {{1000., 0., 0.}, {0., 0., 0.}, {1.,1.,1.,1.}},
 
-        {{0., -1000., 0.}, {1.,1.,1.,1.}},
-        {{0., 1000., 0.}, {1.,1.,1.,1.}},
+        {{0., -1000., 0.}, {0., 0., 0.}, {1.,1.,1.,1.}},
+        {{0., 1000., 0.}, {0., 0., 0.}, {1.,1.,1.,1.}},
 
-        {{0., 0., -1000.}, {1.,1.,1.,1.}},
-        {{0., 0., 1000.}, {1.,1.,1.,1.}},
+        {{0., 0., -1000.}, {0., 0., 0.}, {1.,1.,1.,1.}},
+        {{0., 0., 1000.}, {0., 0., 0.}, {1.,1.,1.,1.}},
     };
     
-    
-    //cube vertices, the walls that are opposite to each other hhave the same colors
-    Vertex vertices[] =
-    {
-        {{-0.5, -0.5, 0.5}, {1., 0., 0., 1.}},
-        {{ 0.5, -0.5, 0.5}, {1., 0., 0., 1.}},
-        {{ 0.5,  0.5, 0.5}, {1., 0., 0., 1.}},
-        
-        {{-0.5, -0.5, 0.5}, {1., 0., 0., 1.}},
-        {{ -0.5, 0.5, 0.5}, {1., 0., 0., 1.}},
-        {{ 0.5,  0.5, 0.5}, {1., 0., 0., 1.}},
-        
-        
-        {{-0.5, -0.5, -0.5}, {1., 0., 0., 1.}},
-        {{ 0.5, -0.5, -0.5}, {1., 0., 0., 1.}},
-        {{ 0.5,  0.5, -0.5}, {1., 0., 0., 1.}},
-        
-        {{-0.5, -0.5, -0.5}, {1., 0., 0., 1.}},
-        {{ -0.5, 0.5, -0.5}, {1., 0., 0., 1.}},
-        {{ 0.5,  0.5, -0.5}, {1., 0., 0., 1.}},
-        
-        
-        {{ 0.5, -0.5, 0.5}, {0., 1., 0., 1.}},
-        {{ 0.5, -0.5, -0.5}, {0., 1., 0., 1.}},
-        {{ 0.5,  0.5, -0.5}, {0., 1., 0., 1.}},
-        
-        {{ 0.5, -0.5, 0.5}, {0., 1., 0., 1.}},
-        {{ 0.5, 0.5, 0.5}, {0., 1., 0., 1.}},
-        {{ 0.5,  0.5, -0.5}, {0., 1., 0., 1.}},
-        
-        
-        {{ -0.5, -0.5, 0.5}, {0., 1., 0., 1.}},
-        {{ -0.5, -0.5, -0.5}, {0., 1., 0., 1.}},
-        {{ -0.5,  0.5, -0.5}, {0., 1., 0., 1.}},
-        
-        {{ -0.5, -0.5, 0.5}, {0., 1., 0., 1.}},
-        {{ -0.5, 0.5, 0.5}, {0., 1., 0., 1.}},
-        {{ -0.5,  0.5, -0.5}, {0., 1., 0., 1.}},
-        
-        
-        {{ 0.5, 0.5, 0.5}, {0., 0., 1., 1.}},
-        {{ 0.5, 0.5, -0.5}, {0., 0., 1., 1.}},
-        {{ -0.5, 0.5, -0.5}, {0., 0., 1., 1.}},
-        
-        {{ 0.5, 0.5, 0.5}, {0., 0., 1., 1.}},
-        {{ -0.5, 0.5, 0.5}, {0., 0., 1., 1.}},
-        {{ -0.5, 0.5, -0.5}, {0., 0., 1., 1.}},
-        
-        
-        {{ 0.5, -0.5, 0.5}, {0., 0., 1., 1.}},
-        {{ 0.5, -0.5, -0.5}, {0., 0., 1., 1.}},
-        {{ -0.5, -0.5, -0.5}, {0., 0., 1., 1.}},
-        
-        {{ 0.5, -0.5, 0.5}, {0., 0., 1., 1.}},
-        {{ -0.5, -0.5, 0.5}, {0., 0., 1., 1.}},
-        {{ -0.5, -0.5, -0.5}, {0., 0., 1., 1.}},
-    };
-
     float angles[3];
     angles[0] = 2.*M_PI/360.*[self.m_RotationXSlider floatValue];
     angles[1] = 2.*M_PI/360.*[self.m_RotationYSlider floatValue];
@@ -194,21 +144,18 @@
     translation[1] = [self.m_TransYSlider floatValue]/10.;
     translation[2] = [self.m_TransZSlider floatValue]/10;
     
-    printf("| translation[2] = %f\n", translation[2]);
     
     float projPos[4];
     projPos[0] = [self.m_projLeft floatValue]/100.;
     projPos[1] = [self.m_projRight floatValue]/100.;
     projPos[2] = [self.m_projBottom floatValue]/100.;
     projPos[3] = [self.m_projTop floatValue]/100.;
-    printf("| projPos = %f, %f, %f, %f\n", projPos[0], projPos[1], projPos[2], projPos[3]);
     float nearFar[2];
     nearFar[0] = [self.m_projNear floatValue]/10.;
     nearFar[1] = [self.m_projFar floatValue]/10.;
-    printf("| nearFar = %f, %f\n", nearFar[0], nearFar[1]);
     [self updateMatrixValues];
         
-    self.vertexBuffer = [self.device newBufferWithBytes:vertices length:sizeof(vertices) options:MTLResourceStorageModeShared];
+    
     
     bool isPlot = true;
     
@@ -221,6 +168,8 @@
     MTLRenderPassDescriptor* renderPassDescriptor = view.currentRenderPassDescriptor;
     
 //    view.currentRenderPassDescriptor.depthAttachment.storeAction = MTLStoreActionStore;
+
+
     
     renderPassDescriptor.depthAttachment.storeAction = MTLStoreActionStore;
     
@@ -236,12 +185,110 @@
     
     [renderEncoder setVertexBytes:&isPlot length:sizeof(bool) atIndex:PlotOnOff];
     [renderEncoder setVertexBuffer:[self.device newBufferWithBytes:lines length:sizeof(lines) options:MTLResourceStorageModeShared] offset:0 atIndex:MainBuffer];
+//    [renderEncoder setFragmentTexture:pixelData atIndex:FragmentTexture];
     [renderEncoder drawPrimitives:MTLPrimitiveTypeLine vertexStart:0 vertexCount:6];
     
     isPlot = false;
     [renderEncoder setVertexBytes:&isPlot length:sizeof(isPlot) atIndex:PlotOnOff];
-    [renderEncoder setVertexBuffer:self.vertexBuffer offset:0 atIndex:MainBuffer];
-    [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:36];
+    
+    if([[self.comboBox stringValue] isEqualToString:@"Cube"])
+    {
+        Vertex vertices[] =
+        {
+            {{-0.5, -0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},
+            {{ 0.5, -0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},
+            {{ 0.5,  0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},
+            
+            {{-0.5, -0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},
+            {{ -0.5, 0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},
+            {{ 0.5,  0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},
+            
+            
+            {{-0.5, -0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},
+            {{ 0.5, -0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},
+            {{ 0.5,  0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},
+            
+            {{-0.5, -0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},
+            {{ -0.5, 0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},
+            {{ 0.5,  0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},
+            
+            
+            {{ 0.5, -0.5,  0.5}, {1., 0., 0.}, {0., 1., 0., 1.}},
+            {{ 0.5, -0.5, -0.5}, {1., 0., 0.}, {0., 1., 0., 1.}},
+            {{ 0.5,  0.5, -0.5}, {1., 0., 0.}, {0., 1., 0., 1.}},
+            
+            {{ 0.5, -0.5,  0.5}, {1., 0., 0.}, {0., 1., 0., 1.}},
+            {{ 0.5,  0.5,  0.5}, {1., 0., 0.}, {0., 1., 0., 1.}},
+            {{ 0.5,  0.5, -0.5}, {1., 0., 0.}, {0., 1., 0., 1.}},
+            
+            
+            {{ -0.5, -0.5,  0.5}, {-1., 0., 0.}, {0., 1., 0., 1.}},
+            {{ -0.5, -0.5, -0.5}, {-1., 0., 0.}, {0., 1., 0., 1.}},
+            {{ -0.5,  0.5, -0.5}, {-1., 0., 0.}, {0., 1., 0., 1.}},
+            
+            {{ -0.5, -0.5, 0.5}, {-1., 0., 0.}, {0., 1., 0., 1.}},
+            {{ -0.5, 0.5,  0.5}, {-1., 0., 0.}, {0., 1., 0., 1.}},
+            {{ -0.5, 0.5, -0.5}, {-1., 0., 0.}, {0., 1., 0., 1.}},
+            
+            
+            {{ 0.5,  0.5,  0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},
+            {{ 0.5,  0.5, -0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},
+            {{ -0.5, 0.5, -0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},
+            
+            {{ 0.5,  0.5,  0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},
+            {{ -0.5, 0.5,  0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},
+            {{ -0.5, 0.5, -0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},
+            
+            
+            {{ 0.5, -0.5,   0.5}, {0., -1., 0.}, {0., 0., 1., 1.}},
+            {{ 0.5, -0.5,  -0.5}, {0., -1., 0.}, {0., 0., 1., 1.}},
+            {{ -0.5, -0.5, -0.5}, {0., -1., 0.}, {0., 0., 1., 1.}},
+            
+            {{  0.5, -0.5,  0.5}, {0., -1., 0.}, {0., 0., 1., 1.}},
+            {{ -0.5, -0.5,  0.5}, {0., -1., 0.}, {0., 0., 1., 1.}},
+            {{ -0.5, -0.5, -0.5}, {0., -1., 0.}, {0., 0., 1., 1.}},
+        };
+        self.vertexBuffer = [self.device newBufferWithBytes:vertices length:sizeof(vertices) options:MTLResourceStorageModeShared];
+        [renderEncoder setVertexBuffer:self.vertexBuffer offset:0 atIndex:MainBuffer];
+        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:36];
+    }
+    else if([[self.comboBox stringValue] isEqualToString:@"Sphere"])
+    {
+        Vertex vertices2[10201];
+        
+        float radius = 0.5;
+        float x, y, z, xy, nx, ny, nz, lengthInv = 1.0f / radius;
+        float sectorCount = 100., stackCount = 100.;
+        
+        float sectorStep = 2 * M_PI / sectorCount;
+        float stackStep = M_PI / stackCount;
+        float sectorAngle, stackAngle;
+
+        for(int i = 0; i <= stackCount; ++i)
+        {
+            stackAngle = M_PI / 2 - i * stackStep;
+            xy = radius * cosf(stackAngle);
+            z = radius * sinf(stackAngle);
+
+            for(int j = 0; j <= sectorCount; ++j)
+            {
+                sectorAngle = j * sectorStep;
+                x = xy * cosf(sectorAngle);
+                y = xy * sinf(sectorAngle);
+                
+                nx = x * lengthInv;
+                ny = y * lengthInv;
+                nz = z * lengthInv;
+                
+                vertices2[101*i + j] = {{x,y,z}, {nx, ny, nz}, {100*x,100*y,100*z,1.}};
+            }
+        }
+        self.vertexBuffer = [self.device newBufferWithBytes:vertices2 length:sizeof(vertices2) options:MTLResourceStorageModeShared];
+        [renderEncoder setVertexBuffer:self.vertexBuffer offset:0 atIndex:MainBuffer];
+        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:10201];
+    }
+
+    
     
     [renderEncoder endEncoding];
     [commandBuffer presentDrawable:view.currentDrawable];
@@ -256,7 +303,7 @@
 -(void)mouseDragged:(NSEvent *)event
 {
     NSLog(@"|x drag");
-    if(true)
+    if(false)
     {
         float tx =  [event locationInWindow].x, ty =  [event locationInWindow].y;
         if(tx>=44. && tx<=44.+766. && ty>=20. && ty<=20.+766.)
@@ -291,7 +338,6 @@
     NSLog(@"|x down");
     if(character == 'w' || character == 'W')
     {
-        
         _isTranslate = true;
     }
     if(character == 'f' || character == 'F')

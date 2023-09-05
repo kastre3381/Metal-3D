@@ -76,5 +76,6 @@ vertex VertexOut vertexMain(const device VertexIn* vertexArray [[buffer(MainBuff
     
     //float4(pos1, pos2, pos3, w);
     vertexOut.color = vertexArray[vertexID].color;
+    vertexOut.normals = vertexArray[vertexID].normals;
     return vertexOut;
 }

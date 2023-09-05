@@ -17,6 +17,7 @@ typedef enum ShaderDefines
     ProjectionDirections,
     NearFar,
     PlotOnOff,
+    FragmentTexture,
 } ShaderDefines;
 
 #endif /* IndexEnum_h */

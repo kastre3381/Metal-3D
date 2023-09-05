@@ -12,12 +12,14 @@
 struct VertexIn
 {
     float3 position [[attribute(0)]];
-    float4 color [[attribute(1)]];
+    float3 normals [[attribute(1)]];
+    float4 color [[attribute(2)]];
 };
 
 struct VertexOut
 {
     float4 position [[position]];
+    float3 normals;
     float4 color;
 };
 
@@ -30,6 +32,7 @@ typedef enum ShaderDefines
     ProjectionDirections,
     NearFar,
     PlotOnOff,
+    FragmentTexture,
 } ShaderDefines;
 
 #endif /* Defines_h */

@@ -5,10 +5,12 @@
 #import <AppKit/AppKit.h>
 #import "IndexEnum.h"
 #import <string>
+#import <vector>
 
 typedef struct
 {
     vector_float3 position;
+    vector_float3 normals;
     vector_float4 color;
 } Vertex;
 
@@ -72,10 +74,12 @@ typedef struct
 @property (nonatomic, strong) id<MTLCommandQueue> commandQueue;
 @property (nonatomic, strong) id<MTLDevice> device;
 @property (nonatomic, strong) id<MTLBuffer> vertexBuffer;
+@property (nonatomic, strong) id<MTLTexture> texture;
 
 @property (nonatomic) BOOL isTranslate;
 @property (nonatomic) BOOL isRotate;
 @property (nonatomic) NSPoint lastMousePosition;
+@property (weak) IBOutlet NSComboBox *comboBox;
 
 @end
 
