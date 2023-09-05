@@ -74,12 +74,14 @@ typedef struct
 @property (nonatomic, strong) id<MTLCommandQueue> commandQueue;
 @property (nonatomic, strong) id<MTLDevice> device;
 @property (nonatomic, strong) id<MTLBuffer> vertexBuffer;
-@property (nonatomic, strong) id<MTLTexture> texture;
+@property (nonatomic, copy)   id<MTLTexture> texture;
 
 @property (nonatomic) BOOL isTranslate;
 @property (nonatomic) BOOL isRotate;
 @property (nonatomic) NSPoint lastMousePosition;
 @property (weak) IBOutlet NSComboBox *comboBox;
+@property (weak) IBOutlet NSComboBox *comboboxLightOnOff;
+@property (weak) IBOutlet NSComboBox *comboboxLightType;
 
 @end
 

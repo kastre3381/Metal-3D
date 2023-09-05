@@ -8,6 +8,15 @@
 #include <metal_stdlib>
 using namespace metal;
 
+vertex VertexOut vertex2D(const device VertexIn* vertexArray [[buffer(MainBuffer)]],
+                          unsigned int vertexID [[vertex_id]])
+{
+    VertexOut ver;
+    ver.position = float4(vertexArray[vertexID].position, 1.);
+    ver.normals = vertexArray[vertexID].normals;
+    ver.color = vertexArray[vertexID].color;
+    return ver;
+}
 
 vertex VertexOut vertexMain(const device VertexIn* vertexArray [[buffer(MainBuffer)]],
                             unsigned int vertexID [[vertex_id]],
@@ -76,6 +85,6 @@ vertex VertexOut vertexMain(const device VertexIn* vertexArray [[buffer(MainBuff
     
     //float4(pos1, pos2, pos3, w);
     vertexOut.color = vertexArray[vertexID].color;
-    vertexOut.normals = vertexArray[vertexID].normals;
+    vertexOut.normals = float3(float4(vertexArray[vertexID].normals, 1.)*matRotZ * matRotY * matRotX * matTr * matSc * matProj);
     return vertexOut;
 }

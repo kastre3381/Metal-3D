@@ -7,18 +7,33 @@
     self.device = MTLCreateSystemDefaultDevice();
     self.metalView = [[MTKView alloc] initWithFrame:CGRectMake(44, 20, 766, 766) device:self.device];
     self.metalView.delegate = self;
-    self.metalView.clearColor = MTLClearColorMake(0., 0., 0., 1.);
+    self.metalView.clearColor = MTLClearColorMake(1., 1., 1., 1.);
     _metalView.clearDepth = 1.;
     _metalView.depthStencilPixelFormat = MTLPixelFormatDepth16Unorm;
     
     [self.comboBox setStringValue:@"Cube"];
     [self.comboBox addItemWithObjectValue:@"Cube"];
     [self.comboBox addItemWithObjectValue:@"Sphere"];
+    [self.comboBox addItemWithObjectValue:@"Floor"];
+
     
-    MTKTextureLoader* textureLoader = [[MTKTextureLoader alloc] initWithDevice:_device];
-    NSURL* textureURL = [[NSBundle mainBundle] URLForResource:@"gossling" withExtension:@"jpeg"];
-    NSError* error = nil;
-    _texture = [textureLoader newTextureWithContentsOfURL:textureURL options:nil error:&error];
+    [self.comboboxLightOnOff setStringValue:@"Off"];
+    [self.comboboxLightOnOff addItemWithObjectValue:@"Off"];
+    [self.comboboxLightOnOff addItemWithObjectValue:@"On"];
+    
+    [self.comboboxLightType setStringValue:@"Punctual"];
+    [self.comboboxLightType addItemWithObjectValue:@"Punctual"];
+    [self.comboboxLightType addItemWithObjectValue:@"Directional"];
+    [self.comboboxLightType setHidden:YES];
+    
+    MTLTextureDescriptor *destinationTextureDescriptor = [[MTLTextureDescriptor alloc] init];
+    destinationTextureDescriptor.pixelFormat = self.metalView.colorPixelFormat;
+    destinationTextureDescriptor.width = 766;
+    destinationTextureDescriptor.height = 766;
+    destinationTextureDescriptor.usage = MTLTextureUsageShaderWrite | MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget;
+
+    _texture = [_device newTextureWithDescriptor:destinationTextureDescriptor];
+    
     
     [self.view addSubview:self.metalView];
 }
@@ -27,6 +42,12 @@
 - (void)setRepresentedObject:(id)representedObject {
     [super setRepresentedObject:representedObject];
 }
+
+- (IBAction)showLightOptionBox:(id)sender {
+    if([[self.comboboxLightOnOff stringValue] isEqualToString:@"On"]) [self.comboboxLightType setHidden:NO];
+    else [self.comboboxLightType setHidden:YES];
+}
+
 
 -(void)updateMatrixValues
 {
@@ -119,14 +140,14 @@
     
     Vertex lines[] =
     {
-        {{-1000., 0., 0.}, {0., 0., 0.}, {1.,1.,1.,1.}},
-        {{1000., 0., 0.}, {0., 0., 0.}, {1.,1.,1.,1.}},
+        {{-1000., 0., 0.}, {0., 0., 0.}, {0.,0.,1.,1.}},
+        {{1000., 0., 0.}, {0., 0., 0.}, {0.,0.,1.,1.}},
 
-        {{0., -1000., 0.}, {0., 0., 0.}, {1.,1.,1.,1.}},
-        {{0., 1000., 0.}, {0., 0., 0.}, {1.,1.,1.,1.}},
+        {{0., -1000., 0.}, {0., 0., 0.}, {0.,0.,1.,1.}},
+        {{0., 1000., 0.}, {0., 0., 0.}, {0.,0.,1.,1.}},
 
-        {{0., 0., -1000.}, {0., 0., 0.}, {1.,1.,1.,1.}},
-        {{0., 0., 1000.}, {0., 0., 0.}, {1.,1.,1.,1.}},
+        {{0., 0., -1000.}, {0., 0., 0.}, {0.,0.,1.,1.}},
+        {{0., 0., 1000.}, {0., 0., 0.}, {0.,0.,1.,1.}},
     };
     
     float angles[3];
@@ -166,7 +187,7 @@
     
     id<MTLCommandBuffer> commandBuffer = [self.device newCommandQueue].commandBuffer;
     MTLRenderPassDescriptor* renderPassDescriptor = view.currentRenderPassDescriptor;
-    
+//    renderPassDescriptor.colorAttachments[0].texture = self.texture;
 //    view.currentRenderPassDescriptor.depthAttachment.storeAction = MTLStoreActionStore;
 
 
@@ -185,7 +206,7 @@
     
     [renderEncoder setVertexBytes:&isPlot length:sizeof(bool) atIndex:PlotOnOff];
     [renderEncoder setVertexBuffer:[self.device newBufferWithBytes:lines length:sizeof(lines) options:MTLResourceStorageModeShared] offset:0 atIndex:MainBuffer];
-//    [renderEncoder setFragmentTexture:pixelData atIndex:FragmentTexture];
+
     [renderEncoder drawPrimitives:MTLPrimitiveTypeLine vertexStart:0 vertexCount:6];
     
     isPlot = false;
@@ -251,6 +272,22 @@
         self.vertexBuffer = [self.device newBufferWithBytes:vertices length:sizeof(vertices) options:MTLResourceStorageModeShared];
         [renderEncoder setVertexBuffer:self.vertexBuffer offset:0 atIndex:MainBuffer];
         [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:36];
+        
+        [renderEncoder setTriangleFillMode:MTLTriangleFillModeLines];
+        Vertex vertices2[11*36];
+        
+        for(int i=0; i<11; i++)
+        {
+            for(int j=0; j<36; j++)
+            {
+                vertices2[i*36+j] = {vertices[j].position-vector_float3(5./1500.)+vector_float3(i*1./1500.), vertices[j].normals, {0.,0.,0.,1.}};
+            }
+        }
+        
+        
+        self.vertexBuffer = [self.device newBufferWithBytes:vertices2 length:sizeof(vertices2) options:MTLResourceStorageModeShared];
+        [renderEncoder setVertexBuffer:self.vertexBuffer offset:0 atIndex:MainBuffer];
+        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:11*36];
     }
     else if([[self.comboBox stringValue] isEqualToString:@"Sphere"])
     {
@@ -287,7 +324,50 @@
         [renderEncoder setVertexBuffer:self.vertexBuffer offset:0 atIndex:MainBuffer];
         [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:10201];
     }
-
+    else if([[self.comboBox stringValue] isEqualToString:@"Floor"])
+    {
+        Vertex vertices[] =
+        {
+            {{ 0., -1., -1.}, {0., 0., 1.}, {1., 1., 0., 1.}},
+            {{ 0., -1., 1.}, {0., 0., 1.}, {1., 0., 1., 1.}},
+            {{ 0.,  1., 1.}, {0., 0., 1.}, {1., 1., 0., 1.}},
+            
+            {{ 0., -1., -1.}, {0., 0., 1.}, {1., 1., 0., 1.}},
+            {{ 0., 1., -1.}, {0., 0., 1.}, {0., 1., 1., 1.}},
+            {{ 0., 1., 1.}, {0., 0., 1.}, {1., 1., 0., 1.}}
+        };
+        
+        self.vertexBuffer = [self.device newBufferWithBytes:vertices length:sizeof(vertices) options:MTLResourceStorageModeShared];
+        [renderEncoder setVertexBuffer:self.vertexBuffer offset:0 atIndex:MainBuffer];
+        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
+    }
+    
+//    library = [self.device newDefaultLibrary];
+//    vertexFunction = [library newFunctionWithName:@"vertex2D"];
+//    fragmentFunction = [library newFunctionWithName:@"fragment2D"];
+//    _pipelineDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
+//    _pipelineDescriptor.fragmentFunction = fragmentFunction;
+//    _pipelineDescriptor.vertexFunction = vertexFunction;
+//    _pipelineDescriptor.colorAttachments[0].pixelFormat = self.metalView.colorPixelFormat;
+//    _pipelineDescriptor.depthAttachmentPixelFormat = self.metalView.depthStencilPixelFormat;
+//    self.pipelineState = [self.device newRenderPipelineStateWithDescriptor:_pipelineDescriptor error:&error];
+//    [renderEncoder setRenderPipelineState:self.pipelineState];
+//    [renderEncoder setDepthStencilState:depthState];
+//
+//    _texture = renderPassDescriptor.colorAttachments[0].texture;
+//    [renderEncoder setFragmentTexture:self.texture atIndex:FragmentTexture];
+//    Vertex vertices[] = {
+//        {{-1., -1., 0.}, {0.,0.,0.}, {0., 0.,0., 0.}},
+//        {{-1., 1., 0.}, {0.,0.,0.}, {0., 0.,0., 0.}},
+//        {{ 1., 1., 1.}, {0.,0.,0.}, {0., 0.,0., 0.}},
+//
+//        {{-1., -1., 0.}, {0.,0.,0.}, {0., 0.,0., 0.}},
+//        {{ 1., -1., 0.}, {0.,0.,0.}, {0., 0.,0., 0.}},
+//        {{ 1., 1., 0.}, {0.,0.,0.}, {0., 0.,0., 0.}}
+//    };
+//    self.vertexBuffer = [self.device newBufferWithBytes:vertices length:sizeof(vertices) options:MTLResourceStorageModeShared];
+//    [renderEncoder setVertexBuffer:self.vertexBuffer offset:0 atIndex:MainBuffer];
+//    [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
     
     
     [renderEncoder endEncoding];
@@ -303,7 +383,7 @@
 -(void)mouseDragged:(NSEvent *)event
 {
     NSLog(@"|x drag");
-    if(false)
+    if(true)
     {
         float tx =  [event locationInWindow].x, ty =  [event locationInWindow].y;
         if(tx>=44. && tx<=44.+766. && ty>=20. && ty<=20.+766.)
