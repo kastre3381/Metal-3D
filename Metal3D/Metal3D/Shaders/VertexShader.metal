@@ -25,7 +25,7 @@ vertex VertexOut vertexMain(const device VertexIn* vertexArray [[buffer(MainBuff
                             constant float3& translation [[buffer(TranslationFactors)]],
                             constant float4& directions [[buffer(ProjectionDirections)]],
                             constant float2& nearFar [[buffer(NearFar)]],
-                            constant bool& isPlot [[buffer(PlotOnOff)]])
+                            constant bool2& isPlot [[buffer(PlotOnOff)]])
 {
     VertexOut vertexOut;
     
@@ -71,7 +71,7 @@ vertex VertexOut vertexMain(const device VertexIn* vertexArray [[buffer(MainBuff
     
    
     float4x4 mat;
-    if(!isPlot)
+    if(!isPlot[0])
         mat = matRotZ * matRotY * matRotX * matTr * matSc * matProj;
     else
         mat = float4x4(float4(10., 0., 0., 0.),
@@ -82,9 +82,14 @@ vertex VertexOut vertexMain(const device VertexIn* vertexArray [[buffer(MainBuff
     
     vertexOut.position = posMain * mat;
 //    mat * posMain;
-    
+    vertexOut.posBef = posMain * matRotZ * matRotY * matRotX * matTr * matSc;
     //float4(pos1, pos2, pos3, w);
     vertexOut.color = vertexArray[vertexID].color;
-    vertexOut.normals = float3(float4(vertexArray[vertexID].normals, 1.)*matRotZ * matRotY * matRotX * matTr * matSc * matProj);
+    vertexOut.normals =// vertexArray[vertexID].normals;
+    float3(float4(vertexArray[vertexID].normals, 0.)*matRotZ * matRotY * matRotX * matTr * matSc);
+    
+    if(isPlot[1])
+        vertexOut.color = float4(2.*posMain.x, 2.*posMain.y, 2.*posMain.z, 1.);
+    
     return vertexOut;
 }

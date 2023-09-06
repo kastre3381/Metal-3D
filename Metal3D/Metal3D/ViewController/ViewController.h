@@ -73,6 +73,16 @@ typedef struct
 @property (nonatomic, strong) MTLRenderPipelineDescriptor* pipelineDescriptor;
 @property (nonatomic, strong) id<MTLCommandQueue> commandQueue;
 @property (nonatomic, strong) id<MTLDevice> device;
+@property (nonatomic, strong) id<MTLBuffer> vertexBufferCube;
+@property (nonatomic, strong) id<MTLBuffer> vertexBufferCubeBlack;
+@property (nonatomic, strong) id<MTLBuffer> vertexBufferSphere;
+@property (nonatomic, strong) id<MTLBuffer> vertexBufferSphereBlack;
+@property (nonatomic, strong) id<MTLBuffer> vertexBufferPlane;
+@property (nonatomic, strong) id<MTLBuffer> vertexBufferPlaneBlack;
+@property (nonatomic, strong) id<MTLBuffer> vertexBufferCyllinder;
+@property (nonatomic, strong) id<MTLBuffer> vertexBufferCyllinderBlack;
+@property (nonatomic, strong) id<MTLBuffer> vertexBufferTorus;
+@property (nonatomic, strong) id<MTLBuffer> vertexBufferTorusBlack;
 @property (nonatomic, strong) id<MTLBuffer> vertexBuffer;
 @property (nonatomic, copy)   id<MTLTexture> texture;
 
@@ -82,6 +92,8 @@ typedef struct
 @property (weak) IBOutlet NSComboBox *comboBox;
 @property (weak) IBOutlet NSComboBox *comboboxLightOnOff;
 @property (weak) IBOutlet NSComboBox *comboboxLightType;
+@property (weak) IBOutlet NSSwitch *verticesOnOff;
+@property (weak) IBOutlet NSProgressIndicator *progressCircle;
 
 @end
 

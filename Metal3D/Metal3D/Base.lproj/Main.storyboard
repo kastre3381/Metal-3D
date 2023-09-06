@@ -688,8 +688,10 @@
                     <window key="window" title="Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="IQv-IB-iLA">
                         <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-                        <rect key="contentRect" x="585" y="629" width="480" height="270"/>
+                        <rect key="contentRect" x="585" y="629" width="1328" height="828"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
+                        <value key="minSize" type="size" width="1328" height="828"/>
+                        <value key="maxSize" type="size" width="1328" height="828"/>
                         <connections>
                             <outlet property="delegate" destination="B8D-0N-5wS" id="98r-iN-zZc"/>
                         </connections>
@@ -700,7 +702,7 @@
                 </windowController>
                 <customObject id="Oky-zY-oP4" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="75" y="250"/>
+            <point key="canvasLocation" x="106" y="-173"/>
         </scene>
         <!--View Controller-->
         <scene sceneID="hIz-AP-VOD">
@@ -1551,6 +1553,23 @@
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </comboBoxCell>
                             </comboBox>
+                            <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="QuJ-Jm-vcK">
+                                <rect key="frame" x="1003" y="800" width="96" height="22"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" borderStyle="bezel" alignment="center" title="Vertices" bezelStyle="round" id="qHD-4H-FeW">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <progressIndicator fixedFrame="YES" maxValue="100" indeterminate="YES" controlSize="small" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="Itl-Gy-Z10">
+                                <rect key="frame" x="1158" y="803" width="16" height="16"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                            </progressIndicator>
+                            <switch horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" baseWritingDirection="leftToRight" alignment="left" translatesAutoresizingMaskIntoConstraints="NO" id="ySN-Xt-7in">
+                                <rect key="frame" x="1099" y="798" width="42" height="25"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                            </switch>
                         </subviews>
                         <constraints>
                             <constraint firstItem="2TZ-rd-YHd" firstAttribute="leading" secondItem="qZF-Ts-fgg" secondAttribute="leading" id="0FN-5J-d91"/>
@@ -1893,6 +1912,7 @@
                         <outlet property="m_projNear" destination="NL2-4i-L8Y" id="ItM-bK-Juu"/>
                         <outlet property="m_projRight" destination="osY-E6-UY0" id="eea-Zd-N7p"/>
                         <outlet property="m_projTop" destination="nvb-jt-bmI" id="gFp-Q2-Ke9"/>
+                        <outlet property="progressCircle" destination="Itl-Gy-Z10" id="Aw9-o0-AFa"/>
                         <outlet property="projLeftTop" destination="7ul-JC-44k" id="Od1-Gm-aCJ"/>
                         <outlet property="projMidLeftTop" destination="gPY-LU-4T2" id="mPW-xl-d4K"/>
                         <outlet property="projMidRightBot" destination="hD6-5t-dr7" id="CW6-Io-3PY"/>
@@ -1920,6 +1940,7 @@
                         <outlet property="transX" destination="fwR-Hu-YZF" id="OCg-EX-8TV"/>
                         <outlet property="transY" destination="i0K-kY-4Os" id="3xp-oj-L2G"/>
                         <outlet property="transZ" destination="qzi-0S-Eyl" id="bzo-qA-Uol"/>
+                        <outlet property="verticesOnOff" destination="ySN-Xt-7in" id="ctv-Jj-gof"/>
                     </connections>
                 </viewController>
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>

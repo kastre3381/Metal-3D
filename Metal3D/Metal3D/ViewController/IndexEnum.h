@@ -18,6 +18,7 @@ typedef enum ShaderDefines
     NearFar,
     PlotOnOff,
     FragmentTexture,
+    FragmentLightType,
 } ShaderDefines;
 
 #endif /* IndexEnum_h */

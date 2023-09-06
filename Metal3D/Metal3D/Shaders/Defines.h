@@ -19,6 +19,7 @@ struct VertexIn
 struct VertexOut
 {
     float4 position [[position]];
+    float4 posBef;
     float3 normals;
     float4 color;
 };
@@ -33,6 +34,7 @@ typedef enum ShaderDefines
     NearFar,
     PlotOnOff,
     FragmentTexture,
+    FragmentLightType,
 } ShaderDefines;
 
 #endif /* Defines_h */

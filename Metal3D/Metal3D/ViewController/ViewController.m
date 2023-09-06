@@ -14,8 +14,9 @@
     [self.comboBox setStringValue:@"Cube"];
     [self.comboBox addItemWithObjectValue:@"Cube"];
     [self.comboBox addItemWithObjectValue:@"Sphere"];
-    [self.comboBox addItemWithObjectValue:@"Floor"];
-
+    [self.comboBox addItemWithObjectValue:@"Plane"];
+    [self.comboBox addItemWithObjectValue:@"Cyllinder"];
+    [self.comboBox addItemWithObjectValue:@"Torus"];
     
     [self.comboboxLightOnOff setStringValue:@"Off"];
     [self.comboboxLightOnOff addItemWithObjectValue:@"Off"];
@@ -33,6 +34,84 @@
     destinationTextureDescriptor.usage = MTLTextureUsageShaderWrite | MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget;
 
     _texture = [_device newTextureWithDescriptor:destinationTextureDescriptor];
+//    [self.progressCircle startAnimation:<#(nullable id)#>]
+    //cube
+    {
+        Vertex vertices[] =
+        {
+            {{-0.5, -0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},
+            {{ 0.5, -0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},
+            {{ 0.5,  0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},
+            
+            {{-0.5, -0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},
+            {{ -0.5, 0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},
+            {{ 0.5,  0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},
+            
+            
+            {{-0.5, -0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},
+            {{ 0.5, -0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},
+            {{ 0.5,  0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},
+            
+            {{-0.5, -0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},
+            {{ -0.5, 0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},
+            {{ 0.5,  0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},
+            
+            
+            {{ 0.5, -0.5,  0.5}, {1., 0., 0.}, {0., 1., 0., 1.}},
+            {{ 0.5, -0.5, -0.5}, {1., 0., 0.}, {0., 1., 0., 1.}},
+            {{ 0.5,  0.5, -0.5}, {1., 0., 0.}, {0., 1., 0., 1.}},
+            
+            {{ 0.5, -0.5,  0.5}, {1., 0., 0.}, {0., 1., 0., 1.}},
+            {{ 0.5,  0.5,  0.5}, {1., 0., 0.}, {0., 1., 0., 1.}},
+            {{ 0.5,  0.5, -0.5}, {1., 0., 0.}, {0., 1., 0., 1.}},
+            
+            
+            {{ -0.5, -0.5,  0.5}, {-1., 0., 0.}, {0., 1., 0., 1.}},
+            {{ -0.5, -0.5, -0.5}, {-1., 0., 0.}, {0., 1., 0., 1.}},
+            {{ -0.5,  0.5, -0.5}, {-1., 0., 0.}, {0., 1., 0., 1.}},
+            
+            {{ -0.5, -0.5, 0.5}, {-1., 0., 0.}, {0., 1., 0., 1.}},
+            {{ -0.5, 0.5,  0.5}, {-1., 0., 0.}, {0., 1., 0., 1.}},
+            {{ -0.5, 0.5, -0.5}, {-1., 0., 0.}, {0., 1., 0., 1.}},
+            
+            
+            {{ 0.5,  0.5,  0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},
+            {{ 0.5,  0.5, -0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},
+            {{ -0.5, 0.5, -0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},
+            
+            {{ 0.5,  0.5,  0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},
+            {{ -0.5, 0.5,  0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},
+            {{ -0.5, 0.5, -0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},
+            
+            
+            {{ 0.5, -0.5,   0.5}, {0., -1., 0.}, {0., 0., 1., 1.}},
+            {{ 0.5, -0.5,  -0.5}, {0., -1., 0.}, {0., 0., 1., 1.}},
+            {{ -0.5, -0.5, -0.5}, {0., -1., 0.}, {0., 0., 1., 1.}},
+            
+            {{  0.5, -0.5,  0.5}, {0., -1., 0.}, {0., 0., 1., 1.}},
+            {{ -0.5, -0.5,  0.5}, {0., -1., 0.}, {0., 0., 1., 1.}},
+            {{ -0.5, -0.5, -0.5}, {0., -1., 0.}, {0., 0., 1., 1.}},
+        };
+        self.vertexBufferCube = [self.device newBufferWithBytes:vertices length:sizeof(vertices) options:MTLResourceStorageModeShared];
+        
+        Vertex vertices2[11*36];
+        
+        for(int i=0; i<11; i++)
+        {
+            for(int j=0; j<36; j++)
+            {
+                vertices2[i*36+j] = {vertices[j].position-vector_float3(5./1500.)+vector_float3(i*1./1500.), vertices[j].normals, {0.,0.,0.,1.}};
+            }
+        }
+        self.vertexBufferCubeBlack = [self.device newBufferWithBytes:vertices2 length:sizeof(vertices2) options:MTLResourceStorageModeShared];
+    }
+    
+    
+    
+    
+    
+    
+    
     
     
     [self.view addSubview:self.metalView];
@@ -119,6 +198,7 @@
     [self.m_projTop setFloatValue:50.];
     [self.m_projNear setFloatValue:10.];
     [self.m_projFar setFloatValue:100.];
+    [self.verticesOnOff setState:NO];
 }
 
 
@@ -178,7 +258,7 @@
         
     
     
-    bool isPlot = true;
+    bool isPlot[2] = {true, false};
     
     MTLDepthStencilDescriptor *depthDescriptor = [MTLDepthStencilDescriptor new];
     depthDescriptor.depthCompareFunction = MTLCompareFunctionLessEqual;
@@ -204,143 +284,305 @@
     [renderEncoder setVertexBytes:projPos length:sizeof(float)*4 atIndex:ProjectionDirections];
     [renderEncoder setVertexBytes:nearFar length:sizeof(float)*2 atIndex:NearFar];
     
-    [renderEncoder setVertexBytes:&isPlot length:sizeof(bool) atIndex:PlotOnOff];
+    [renderEncoder setVertexBytes:&isPlot length:sizeof(bool)*2 atIndex:PlotOnOff];
     [renderEncoder setVertexBuffer:[self.device newBufferWithBytes:lines length:sizeof(lines) options:MTLResourceStorageModeShared] offset:0 atIndex:MainBuffer];
 
+    int lightType = 0;
+    if([[self.comboboxLightOnOff stringValue] isEqualToString:@"Off"]) [renderEncoder setFragmentBytes:&lightType length:sizeof(int) atIndex:FragmentLightType];
+    else
+    {
+        if([[self.comboboxLightType stringValue] isEqualToString:@"Punctual"])
+        {
+            lightType = 1;
+            [renderEncoder setFragmentBytes:&lightType length:sizeof(int) atIndex:FragmentLightType];
+        }
+        else
+        {
+            lightType = 2;
+            [renderEncoder setFragmentBytes:&lightType length:sizeof(int) atIndex:FragmentLightType];
+        }
+    }
+    
     [renderEncoder drawPrimitives:MTLPrimitiveTypeLine vertexStart:0 vertexCount:6];
     
-    isPlot = false;
-    [renderEncoder setVertexBytes:&isPlot length:sizeof(isPlot) atIndex:PlotOnOff];
+    isPlot[0] = false;
+    [renderEncoder setVertexBytes:&isPlot length:sizeof(bool)*2 atIndex:PlotOnOff];
     
     if([[self.comboBox stringValue] isEqualToString:@"Cube"])
     {
-        Vertex vertices[] =
-        {
-            {{-0.5, -0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},
-            {{ 0.5, -0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},
-            {{ 0.5,  0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},
-            
-            {{-0.5, -0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},
-            {{ -0.5, 0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},
-            {{ 0.5,  0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},
-            
-            
-            {{-0.5, -0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},
-            {{ 0.5, -0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},
-            {{ 0.5,  0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},
-            
-            {{-0.5, -0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},
-            {{ -0.5, 0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},
-            {{ 0.5,  0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},
-            
-            
-            {{ 0.5, -0.5,  0.5}, {1., 0., 0.}, {0., 1., 0., 1.}},
-            {{ 0.5, -0.5, -0.5}, {1., 0., 0.}, {0., 1., 0., 1.}},
-            {{ 0.5,  0.5, -0.5}, {1., 0., 0.}, {0., 1., 0., 1.}},
-            
-            {{ 0.5, -0.5,  0.5}, {1., 0., 0.}, {0., 1., 0., 1.}},
-            {{ 0.5,  0.5,  0.5}, {1., 0., 0.}, {0., 1., 0., 1.}},
-            {{ 0.5,  0.5, -0.5}, {1., 0., 0.}, {0., 1., 0., 1.}},
-            
-            
-            {{ -0.5, -0.5,  0.5}, {-1., 0., 0.}, {0., 1., 0., 1.}},
-            {{ -0.5, -0.5, -0.5}, {-1., 0., 0.}, {0., 1., 0., 1.}},
-            {{ -0.5,  0.5, -0.5}, {-1., 0., 0.}, {0., 1., 0., 1.}},
-            
-            {{ -0.5, -0.5, 0.5}, {-1., 0., 0.}, {0., 1., 0., 1.}},
-            {{ -0.5, 0.5,  0.5}, {-1., 0., 0.}, {0., 1., 0., 1.}},
-            {{ -0.5, 0.5, -0.5}, {-1., 0., 0.}, {0., 1., 0., 1.}},
-            
-            
-            {{ 0.5,  0.5,  0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},
-            {{ 0.5,  0.5, -0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},
-            {{ -0.5, 0.5, -0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},
-            
-            {{ 0.5,  0.5,  0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},
-            {{ -0.5, 0.5,  0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},
-            {{ -0.5, 0.5, -0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},
-            
-            
-            {{ 0.5, -0.5,   0.5}, {0., -1., 0.}, {0., 0., 1., 1.}},
-            {{ 0.5, -0.5,  -0.5}, {0., -1., 0.}, {0., 0., 1., 1.}},
-            {{ -0.5, -0.5, -0.5}, {0., -1., 0.}, {0., 0., 1., 1.}},
-            
-            {{  0.5, -0.5,  0.5}, {0., -1., 0.}, {0., 0., 1., 1.}},
-            {{ -0.5, -0.5,  0.5}, {0., -1., 0.}, {0., 0., 1., 1.}},
-            {{ -0.5, -0.5, -0.5}, {0., -1., 0.}, {0., 0., 1., 1.}},
-        };
-        self.vertexBuffer = [self.device newBufferWithBytes:vertices length:sizeof(vertices) options:MTLResourceStorageModeShared];
-        [renderEncoder setVertexBuffer:self.vertexBuffer offset:0 atIndex:MainBuffer];
+       
+        [renderEncoder setVertexBuffer:self.vertexBufferCube offset:0 atIndex:MainBuffer];
         [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:36];
         
-        [renderEncoder setTriangleFillMode:MTLTriangleFillModeLines];
-        Vertex vertices2[11*36];
-        
-        for(int i=0; i<11; i++)
+        if([self.verticesOnOff state] == YES)
         {
-            for(int j=0; j<36; j++)
-            {
-                vertices2[i*36+j] = {vertices[j].position-vector_float3(5./1500.)+vector_float3(i*1./1500.), vertices[j].normals, {0.,0.,0.,1.}};
-            }
+            [renderEncoder setTriangleFillMode:MTLTriangleFillModeLines];
+            [renderEncoder setVertexBuffer:self.vertexBufferCubeBlack offset:0 atIndex:MainBuffer];
+            [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:11*36];
         }
         
-        
-        self.vertexBuffer = [self.device newBufferWithBytes:vertices2 length:sizeof(vertices2) options:MTLResourceStorageModeShared];
-        [renderEncoder setVertexBuffer:self.vertexBuffer offset:0 atIndex:MainBuffer];
-        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:11*36];
     }
     else if([[self.comboBox stringValue] isEqualToString:@"Sphere"])
     {
-        Vertex vertices2[10201];
+        Vertex vertices[45*120*2*3];
         
-        float radius = 0.5;
-        float x, y, z, xy, nx, ny, nz, lengthInv = 1.0f / radius;
-        float sectorCount = 100., stackCount = 100.;
+        float MAX_VAL = 45;
+        float MAX_VAL_CIRCLE = 120;
+        float r = 0.8;
+        float MIN_ANGLE_CIRCLE = 2.*M_PI/MAX_VAL_CIRCLE;
+        float MIN_ANGLE = 2.*M_PI/MAX_VAL;
         
-        float sectorStep = 2 * M_PI / sectorCount;
-        float stackStep = M_PI / stackCount;
-        float sectorAngle, stackAngle;
-
-        for(int i = 0; i <= stackCount; ++i)
+        
+        for(int j=0; j<(MAX_VAL_CIRCLE)/12; j++)
         {
-            stackAngle = M_PI / 2 - i * stackStep;
-            xy = radius * cosf(stackAngle);
-            z = radius * sinf(stackAngle);
-
-            for(int j = 0; j <= sectorCount; ++j)
+            for(int i=0; i<MAX_VAL; i++)
             {
-                sectorAngle = j * sectorStep;
-                x = xy * cosf(sectorAngle);
-                y = xy * sinf(sectorAngle);
+                vertices[i*(int)MAX_VAL_CIRCLE + 6*j] = {{(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*(float)i),
+                                                          (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*(float)i),
+                                                          r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j)},
+                    {(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*(float)i),
+                                                              (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*(float)i),
+                                                              r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j)},
+                                                          {(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*(float)i), (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*(float)i), r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j), 1.}};
+                vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 1] = {{(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*(float)i),
+                                                              (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*(float)i),
+                                                              r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.))},
+                    {(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*(float)i),
+                                                                  (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*(float)i),
+                                                                  r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.))},
+                                                              {(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*(float)i), (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*(float)i), r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)), 1.}};
+                vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 2] = {{(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*((float)i+1.)),
+                                                          (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*((float)i+1.)),
+                                                          r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j)},
+                    {(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*((float)i+1.)),
+                                                              (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*((float)i+1.)),
+                                                              r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j)},
+                                                          {(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*((float)i+1.)), (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*((float)i+1.)), r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j), 1.}};
                 
-                nx = x * lengthInv;
-                ny = y * lengthInv;
-                nz = z * lengthInv;
-                
-                vertices2[101*i + j] = {{x,y,z}, {nx, ny, nz}, {100*x,100*y,100*z,1.}};
+                vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 3] = {{(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*((float)i+1.)),
+                                                          (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*((float)i+1.)),
+                                                          r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j)},
+                    {(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*((float)i+1.)),
+                                                              (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*((float)i+1.)),
+                                                              r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j)},
+                                                          {(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*((float)i+1.)), (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*((float)i+1.)), r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j), 1.}};
+                vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 4] = {{(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*(float)i),
+                                                              (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*(float)i),
+                                                              r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.))},
+                    {(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*(float)i),
+                                                                  (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*(float)i),
+                                                                  r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.))},
+                                                              {(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*(float)i), (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*(float)i), r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)), 1.}};
+                vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 5] = {{(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*((float)i+1.)),
+                                                              (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*((float)i+1.)),
+                                                              r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.))},
+                    {(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*((float)i+1.)),
+                                                                  (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*((float)i+1.)),
+                                                                  r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.))},
+                                                              {(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*((float)i+1.)), (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*((float)i+1.)), r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)), 1.}};
             }
         }
-        self.vertexBuffer = [self.device newBufferWithBytes:vertices2 length:sizeof(vertices2) options:MTLResourceStorageModeShared];
+        
+        for(int i=0; i<MAX_VAL; i++)
+        {
+            vertices[i*(int)MAX_VAL_CIRCLE] = {{0., 0., r}, {0., 0., r}, {0., 0., r, 1.}};
+            vertices[i*(int)MAX_VAL_CIRCLE + 1] = {{(r*sinf(6.*MIN_ANGLE_CIRCLE*(1.)))*cosf(MIN_ANGLE*(float)i),
+                                                          (r*sinf(6.*MIN_ANGLE_CIRCLE*(1.)))*sinf(MIN_ANGLE*(float)i),
+                                                          r*cosf(6.*MIN_ANGLE_CIRCLE*(1.))},
+                {(r*sinf(6.*MIN_ANGLE_CIRCLE*(1.)))*cosf(MIN_ANGLE*(float)i),
+                                                              (r*sinf(6.*MIN_ANGLE_CIRCLE*(1.)))*sinf(MIN_ANGLE*(float)i),
+                                                              r*cosf(6.*MIN_ANGLE_CIRCLE*(1.))},
+                                                          {(r*sinf(6.*MIN_ANGLE_CIRCLE*(1.)))*cosf(MIN_ANGLE*(float)i), (r*sinf(6.*MIN_ANGLE_CIRCLE*(1.)))*sinf(MIN_ANGLE*(float)i), r*cosf(6.*MIN_ANGLE_CIRCLE*(1.)), 1.}};
+            vertices[i*(int)MAX_VAL_CIRCLE + 2] = {{(r*sinf(6.*MIN_ANGLE_CIRCLE))*cosf(MIN_ANGLE*((float)i+1.)),
+                                                      (r*sinf(6.*MIN_ANGLE_CIRCLE))*sinf(MIN_ANGLE*((float)i+1.)),
+                                                      r*cosf(6.*MIN_ANGLE_CIRCLE)},
+                {(r*sinf(6.*MIN_ANGLE_CIRCLE))*cosf(MIN_ANGLE*((float)i+1.)),
+                                                          (r*sinf(6.*MIN_ANGLE_CIRCLE))*sinf(MIN_ANGLE*((float)i+1.)),
+                                                          r*cosf(6.*MIN_ANGLE_CIRCLE)},
+                                                      {(r*sinf(6.*MIN_ANGLE_CIRCLE))*cosf(MIN_ANGLE*((float)i+1.)), (r*sinf(6.*MIN_ANGLE_CIRCLE))*sinf(MIN_ANGLE*((float)i+1.)), r*cosf(6.*MIN_ANGLE_CIRCLE), 1.}};
+            
+            vertices[i*(int)MAX_VAL_CIRCLE + 3].position = {0., 0., 0.};
+            vertices[i*(int)MAX_VAL_CIRCLE + 4].position = {0.,0.,0.};
+            vertices[i*(int)MAX_VAL_CIRCLE + 5].position = {0.,0.,0.};
+        }
+        
+        self.vertexBuffer = [self.device newBufferWithBytes:vertices length:sizeof(vertices) options:MTLResourceStorageModeShared];
         [renderEncoder setVertexBuffer:self.vertexBuffer offset:0 atIndex:MainBuffer];
-        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:10201];
+        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:42*120*2*3];
+        
+        if([self.verticesOnOff state] == YES)
+        {
+            Vertex vertices2[45*120*2*3];
+            
+            for(int i=0; i<45*120*2*3; i++)
+                vertices2[i] = {vertices[i].position, vertices[i].normals, {0.,0.,0.,1.}};
+
+            isPlot[1] = false;
+            [renderEncoder setVertexBytes:&isPlot length:sizeof(bool)*2 atIndex:PlotOnOff];
+            
+            self.vertexBuffer = [self.device newBufferWithBytes:vertices2 length:sizeof(vertices2) options:MTLResourceStorageModeShared];
+            [renderEncoder setTriangleFillMode:MTLTriangleFillModeLines];
+            [renderEncoder setVertexBuffer:self.vertexBuffer offset:0 atIndex:MainBuffer];
+            [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:42*120*2*3];
+        }
     }
-    else if([[self.comboBox stringValue] isEqualToString:@"Floor"])
+    else if([[self.comboBox stringValue] isEqualToString:@"Plane"])
     {
         Vertex vertices[] =
         {
-            {{ 0., -1., -1.}, {0., 0., 1.}, {1., 1., 0., 1.}},
-            {{ 0., -1., 1.}, {0., 0., 1.}, {1., 0., 1., 1.}},
-            {{ 0.,  1., 1.}, {0., 0., 1.}, {1., 1., 0., 1.}},
+            {{ 0., -1., -1.}, {1., 0., 0.}, {1., 1., 0., 1.}},
+            {{ 0., -1., 1.}, {1., 0., 0.}, {1., 0., 1., 1.}},
+            {{ 0.,  1., 1.}, {1., 0., 0.}, {1., 1., 0., 1.}},
             
-            {{ 0., -1., -1.}, {0., 0., 1.}, {1., 1., 0., 1.}},
-            {{ 0., 1., -1.}, {0., 0., 1.}, {0., 1., 1., 1.}},
-            {{ 0., 1., 1.}, {0., 0., 1.}, {1., 1., 0., 1.}}
+            {{ 0., -1., -1.}, {1., 0., 0.}, {1., 1., 0., 1.}},
+            {{ 0., 1., -1.}, {1., 0., 0.}, {0., 1., 1., 1.}},
+            {{ 0., 1., 1.}, {1., 0., 0.}, {1., 1., 0., 1.}}
         };
         
         self.vertexBuffer = [self.device newBufferWithBytes:vertices length:sizeof(vertices) options:MTLResourceStorageModeShared];
         [renderEncoder setVertexBuffer:self.vertexBuffer offset:0 atIndex:MainBuffer];
         [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
+        
+        if([self.verticesOnOff state] == YES)
+        {
+            Vertex vertices2[11*6];
+            
+            for(int i=0; i<11; i++)
+            {
+                for(int j=0; j<6; j++)
+                {
+                    vertices2[i*6+j] = {vertices[j].position-vector_float3(5./1500.)+vector_float3(i*1./1500.), vertices[j].normals, {0.,0.,0.,1.}};
+                }
+            }
+            self.vertexBuffer = [self.device newBufferWithBytes:vertices2 length:sizeof(vertices2) options:MTLResourceStorageModeShared];
+            [renderEncoder setTriangleFillMode:MTLTriangleFillModeLines];
+            [renderEncoder setVertexBuffer:self.vertexBuffer offset:0 atIndex:MainBuffer];
+            [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:11*6];
+        }
     }
+    else if([[self.comboBox stringValue] isEqualToString:@"Cyllinder"])
+    {
+        Vertex vertices[12*12];
+        
+        for(int i=0; i<12; i++)
+        {
+            float cosVal = cosf(2.*M_PI/12.*(float)i), cosValNext = cosf(2.*M_PI/12.*(float)(i+1)), sinVal = sinf(2.*M_PI/12.*(float)i), sinValNext = sinf(2.*M_PI/12.*(float)(i+1));
+            
+            float pointX = cosVal*(0.5), pointY = sinVal*(0.5), pointXNext = cosValNext*(0.5), pointYNext = sinValNext*(0.5);
+            
+            vertices[12*i] = {{pointX, pointY, -1}, {0., 0., 0.}, {0., 1., 0., 1.}};
+            vertices[12*i+1] = {{pointXNext, pointYNext, -1}, {0., 0., 0.}, {0., 1., 0., 1.}};
+            vertices[12*i+2] = {{0., 0., -1}, {0., 0., -1.},{0., 1., 0., 1.}};
+            
+            vertices[12*i+3] = {{pointX, pointY, 1}, {0., 0., 0.}, {1., 0., 0., 1.}};
+            vertices[12*i+4] = {{pointXNext, pointYNext, 1}, {0., 0., 0.}, {1., 0., 0., 1.}};
+            vertices[12*i+5] = {{0., 0., 1}, {0., 0., 1.}, {1., 0., 0., 1.}};
+         
+            vertices[12*i+6] = {{pointX, pointY, 1}, {pointX, pointY, 0.}, {1., 0., 0., 1.}};
+            vertices[12*i+7] = {{pointXNext, pointYNext, 1}, {pointXNext, pointYNext, 0.}, {1., 0., 0., 1.}};
+            vertices[12*i+8] = {{pointX, pointY, -1}, {pointX, pointY, 0.}, {0., 1., 0., 1.}};
+            
+            vertices[12*i+9] = {{pointXNext, pointYNext, -1}, {pointXNext, pointYNext, 0.}, {0., 1., 0., 1.}};
+            vertices[12*i+10] = {{pointXNext, pointYNext, 1}, {pointXNext, pointYNext, 0.}, {1., 0., 0., 1.}};
+            vertices[12*i+11] = {{pointX, pointY, -1}, {pointX, pointY, 0.}, {0., 1., 0., 1.}};
+
+        }
+        
+        self.vertexBuffer = [self.device newBufferWithBytes:vertices length:sizeof(vertices) options:MTLResourceStorageModeShared];
+        [renderEncoder setVertexBuffer:self.vertexBuffer offset:0 atIndex:MainBuffer];
+        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:12*12];
+        if([self.verticesOnOff state] == YES)
+        {
+            Vertex vertices2[11*12*12];
+            
+            for(int i=0; i<11; i++)
+            {
+                for(int j=0; j<144; j++)
+                {
+                    vertices2[i*144+j] = {vertices[j].position-vector_float3(5./1500.)+vector_float3(i*1./1500.), vertices[j].normals, {0.,0.,0.,1.}};
+                }
+            }
+            self.vertexBuffer = [self.device newBufferWithBytes:vertices2 length:sizeof(vertices2) options:MTLResourceStorageModeShared];
+            [renderEncoder setTriangleFillMode:MTLTriangleFillModeLines];
+            [renderEncoder setVertexBuffer:self.vertexBuffer offset:0 atIndex:MainBuffer];
+            [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:11*12*12];
+        }
+        
+    }
+    else if([[self.comboBox stringValue] isEqualToString:@"Torus"])
+    {
+        isPlot[1] = true;
+        [renderEncoder setVertexBytes:&isPlot length:sizeof(bool)*2 atIndex:PlotOnOff];
+        
+        Vertex vertices[90*90*2*3];
+        
+        float MAX_VAL = 90;
+        float MAX_VAL_CIRCLE = 90;
+        
+        float r = 0.5, R = 0.8;
+        
+        float MIN_THETA_ANGLE = M_PI/45., MIN_PHI_ANGLE = M_PI/45.;
+        for(int i=0; i<MAX_VAL; i++)
+        {
+            for(int j=0; j<(MAX_VAL_CIRCLE)/6; j++)
+            {
+                vertices[i*(int)MAX_VAL_CIRCLE + 6*j] = {{(R+r*cosf(6.*MIN_THETA_ANGLE*(float)j))*cosf(MIN_PHI_ANGLE*(float)i),
+                                                          (R+r*cosf(6.*MIN_THETA_ANGLE*(float)j))*sinf(MIN_PHI_ANGLE*(float)i),
+                                                          r*sinf(6.*MIN_THETA_ANGLE*(float)j)},
+                                                          {0., 0., 0.},
+                                                          {1., 0., 0., 1.}};
+                vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 1] = {{(R+r*cosf(6.*MIN_THETA_ANGLE*((float)j+1.)))*cosf(MIN_PHI_ANGLE*(float)i),
+                                                              (R+r*cosf(6.*MIN_THETA_ANGLE*((float)j+1.)))*sinf(MIN_PHI_ANGLE*(float)i),
+                                                              r*sinf(6.*MIN_THETA_ANGLE*((float)j+1.))},
+                                                              {0., 0., 0.},
+                                                              {1., 0., 0., 1.}};
+                vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 2] = {{(R+r*cosf(6.*MIN_THETA_ANGLE*(float)j))*cosf(MIN_PHI_ANGLE*((float)i+1.)),
+                                                          (R+r*cosf(6.*MIN_THETA_ANGLE*(float)j))*sinf(MIN_PHI_ANGLE*((float)i+1.)),
+                                                          r*sinf(6.*MIN_THETA_ANGLE*(float)j)},
+                                                          {0., 0., 0.},
+                                                          {1., 0., 0., 1.}};
+                
+                vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 3] = {{(R+r*cosf(6.*MIN_THETA_ANGLE*(float)j))*cosf(MIN_PHI_ANGLE*((float)i+1.)),
+                                                          (R+r*cosf(6.*MIN_THETA_ANGLE*(float)j))*sinf(MIN_PHI_ANGLE*((float)i+1.)),
+                                                          r*sinf(6.*MIN_THETA_ANGLE*(float)j)},
+                                                          {0., 0., 0.},
+                                                          {0., 1., 0., 1.}};
+                vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 4] = {{(R+r*cosf(6.*MIN_THETA_ANGLE*((float)j+1.)))*cosf(MIN_PHI_ANGLE*(float)i),
+                                                              (R+r*cosf(6.*MIN_THETA_ANGLE*((float)j+1.)))*sinf(MIN_PHI_ANGLE*(float)i),
+                                                              r*sinf(6.*MIN_THETA_ANGLE*((float)j+1.))},
+                                                              {0., 0., 0.},
+                                                              {0., 1., 0., 1.}};
+                vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 5] = {{(R+r*cosf(6.*MIN_THETA_ANGLE*((float)j+1.)))*cosf(MIN_PHI_ANGLE*((float)i+1.)),
+                                                              (R+r*cosf(6.*MIN_THETA_ANGLE*((float)j+1.)))*sinf(MIN_PHI_ANGLE*((float)i+1.)),
+                                                              r*sinf(6.*MIN_THETA_ANGLE*((float)j+1.))},
+                                                              {0., 0., 0.},
+                                                              {0., 1., 0., 1.}};
+            }
+        }
+        
+        
+        
+        self.vertexBuffer = [self.device newBufferWithBytes:vertices length:sizeof(vertices) options:MTLResourceStorageModeShared];
+        [renderEncoder setVertexBuffer:self.vertexBuffer offset:0 atIndex:MainBuffer];
+        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:90*90*2*3];
+        
+        if([self.verticesOnOff state] == YES)
+        {
+            Vertex vertices2[90*90*2*3];
+            
+            for(int i=0; i<90*90*2*3; i++)
+                vertices2[i] = {vertices[i].position, vertices[i].normals, {0.,0.,0.,1.}};
+
+            isPlot[1] = false;
+            [renderEncoder setVertexBytes:&isPlot length:sizeof(bool)*2 atIndex:PlotOnOff];
+            
+            self.vertexBuffer = [self.device newBufferWithBytes:vertices2 length:sizeof(vertices2) options:MTLResourceStorageModeShared];
+            [renderEncoder setTriangleFillMode:MTLTriangleFillModeLines];
+            [renderEncoder setVertexBuffer:self.vertexBuffer offset:0 atIndex:MainBuffer];
+            [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:90*90*2*3];
+        }
+    }
+    
     
 //    library = [self.device newDefaultLibrary];
 //    vertexFunction = [library newFunctionWithName:@"vertex2D"];
@@ -383,7 +625,7 @@
 -(void)mouseDragged:(NSEvent *)event
 {
     NSLog(@"|x drag");
-    if(true)
+    if(_isRotate)
     {
         float tx =  [event locationInWindow].x, ty =  [event locationInWindow].y;
         if(tx>=44. && tx<=44.+766. && ty>=20. && ty<=20.+766.)
