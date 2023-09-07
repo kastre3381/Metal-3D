@@ -9,44 +9,13 @@
 using namespace metal;
 
 
-struct PointLight {
-    float3 position;
-    float3 color;
-    float  intensity;
-    float  constantAttenuation;
-    float  linearAttenuation;
-    float  quadraticAttenuation;
-};
 
-constant PointLight punctualLight = {
-    float3(0.0, 2.0, 0.0),
-    float3(0.8, 0.8, 0.8),
-    20.0,
-    10.0,
-    0.1,
-    0.1
-};
-
-
-
-struct DirectionalLight {
-    float3 direction;
-    float3 color;
-};
-
-struct Material {
-    float3 ambientColor;
-    float3 diffuseColor;
-    float3 specularColor;
-    float shininess;
-};
-
-constant DirectionalLight defaultDirectionalLight {
+constant struct DirectionalLight defaultDirectionalLight {
     .direction = float3(-1.0, -1.0, -1.0),
     .color = float3(1.0, 1.0, 1.0)
 };
 
-constant Material defaultMaterial {
+constant struct Material defaultMaterial {
     .ambientColor = float3(0.2, 0.2, 0.2),
     .diffuseColor = float3(0.8, 0.8, 0.8),
     .specularColor = float3(1.0, 1.0, 1.0),
@@ -55,7 +24,8 @@ constant Material defaultMaterial {
 
 
 
-fragment float4 fragmentMain(VertexOut current [[stage_in]], constant int& lightType[[buffer(FragmentLightType)]])
+fragment float4 fragmentMain(VertexOut current [[stage_in]], constant int& lightType[[buffer(FragmentLightType)]],
+                             constant struct PointLight& punctualLight [[buffer(PointLight)]])
 {
     if(lightType == 1)
     {

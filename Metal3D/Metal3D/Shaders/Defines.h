@@ -35,6 +35,32 @@ typedef enum ShaderDefines
     PlotOnOff,
     FragmentTexture,
     FragmentLightType,
+    PointLight,
+    DirectionalLight,
+    Material,
 } ShaderDefines;
+
+
+
+struct DirectionalLight {
+    float3 direction;
+    float3 color;
+};
+
+struct Material {
+    float3 ambientColor;
+    float3 diffuseColor;
+    float3 specularColor;
+    float shininess;
+};
+
+struct PointLight {
+    float3 position;
+    float3 color;
+    float  intensity;
+    float  constantAttenuation;
+    float  linearAttenuation;
+    float  quadraticAttenuation;
+};
 
 #endif /* Defines_h */
