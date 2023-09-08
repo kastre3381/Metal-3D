@@ -25,11 +25,28 @@ vertex VertexOut vertexMain(const device VertexIn* vertexArray [[buffer(MainBuff
                             constant float3& translation [[buffer(TranslationFactors)]],
                             constant float4& directions [[buffer(ProjectionDirections)]],
                             constant float2& nearFar [[buffer(NearFar)]],
-                            constant bool2& isPlot [[buffer(PlotOnOff)]])
+                            constant float2* textCoord [[buffer(TextureCoords)]],
+                            constant bool2& isPlot [[buffer(PlotOnOff)]],
+                            constant uint* indexes [[buffer(IndexesBuffer)]],
+                            constant uint* normalsIndexes [[buffer(NormalsIndexBuffer)]],
+                            constant uint* colorIndexes [[buffer(ColorIndexBuffer)]],
+                            constant bool& drawWithIndexes [[buffer(DrawWithIndexes)]])
 {
     VertexOut vertexOut;
     
-    float4 posMain = float4(vertexArray[vertexID].position, 1.);
+    uint newVertexID = vertexID, newColorID = vertexID, newNormalID = vertexID;
+    
+    vertexOut.texCoors = textCoord[vertexID];
+    
+    if(drawWithIndexes)
+    {
+        newVertexID = indexes[vertexID];
+        newColorID = colorIndexes[vertexID];
+        newNormalID = normalsIndexes[vertexID];
+    }
+    
+    
+    float4 posMain = float4(vertexArray[newVertexID].position, 1.);
     
     float4x4 matTr = float4x4(float4(1., 0., 0., translation.x),
                             float4(0., 1., 0., translation.y),
@@ -84,9 +101,9 @@ vertex VertexOut vertexMain(const device VertexIn* vertexArray [[buffer(MainBuff
 //    mat * posMain;
     vertexOut.posBef = posMain * matRotZ * matRotY * matRotX * matTr * matSc;
     //float4(pos1, pos2, pos3, w);
-    vertexOut.color = vertexArray[vertexID].color;
+    vertexOut.color = vertexArray[newColorID].color;
     vertexOut.normals =// vertexArray[vertexID].normals;
-    float3(float4(vertexArray[vertexID].normals, 0.)*matRotZ * matRotY * matRotX * matTr * matSc);
+    float3(float4(vertexArray[newNormalID].normals, 0.)*matRotZ * matRotY * matRotX * matTr * matSc);
     
     if(isPlot[1])
         vertexOut.color = float4(2.*posMain.x, 2.*posMain.y, 2.*posMain.z, 1.);

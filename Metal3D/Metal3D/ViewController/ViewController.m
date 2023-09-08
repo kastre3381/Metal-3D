@@ -4,28 +4,41 @@
 
 vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float jangle)
 {
-    float vx = cos(jangle)*(rout+cos(iangle)*rin);
-    float vy = sin(jangle)*(rout+cos(iangle)*rin);
-    float vz = sin(iangle)*rin;
-    /* tangent vector with respect to big circle */
+
     float tx = -sin(jangle);
     float ty = cos(jangle);
     float tz = 0;
-    /* tangent vector with respect to little circle */
+
     float sx = cos(jangle)*(-sin(iangle));
     float sy = sin(jangle)*(-sin(iangle));
     float sz = cos(iangle);
-    /* normal is cross-product of tangents */
+
     float nx = ty*sz - tz*sy;
     float ny = tz*sx - tx*sz;
     float nz = tx*sy - ty*sx;
-    /* normalize normal */
+
     float length = sqrt(nx*nx + ny*ny + nz*nz);
     nx /= length;
     ny /= length;
     nz /= length;
     
     return {nx,ny,nz};
+}
+
+- (id<MTLTexture>)loadTextureWithImageNamed:(NSString *)imageName {
+    NSError *error = nil;
+    
+    MTKTextureLoader *textureLoader = [[MTKTextureLoader alloc] initWithDevice:self.device];
+    
+    id<MTLTexture> texture = [textureLoader newTextureWithName:imageName scaleFactor:1.0 bundle:nil options:nil error:&error];
+    
+    if (error) {
+        NSLog(@"texture not work: %@", error);
+        return nil;
+    }
+    
+    NSLog(@"Texture loaded :D");
+    return texture;
 }
 
 - (void)viewDidLoad {
@@ -37,6 +50,8 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     _metalView.clearDepth = 1.;
     _metalView.depthStencilPixelFormat = MTLPixelFormatDepth16Unorm;
     
+    
+    
     [self.comboBox setStringValue:@"Cube"];
     [self.comboBox addItemWithObjectValue:@"Cube"];
     [self.comboBox addItemWithObjectValue:@"Sphere"];
@@ -44,6 +59,14 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     [self.comboBox addItemWithObjectValue:@"Cyllinder"];
     [self.comboBox addItemWithObjectValue:@"Torus"];
     
+    [self.comboCubeTexture setStringValue:@"Minecraft"];
+    [self.comboCubeTexture addItemWithObjectValue:@"Minecraft"];
+    [self.comboCubeTexture addItemWithObjectValue:@"Paradise"];
+    [self.comboCubeTexture addItemWithObjectValue:@"Brick"];
+    [self.comboCubeTexture addItemWithObjectValue:@"Future"];
+    [self.comboCubeTexture addItemWithObjectValue:@"White"];
+    [self.comboCubeTexture addItemWithObjectValue:@"Gossling"];
+
     [self.comboboxLightOnOff setStringValue:@"Off"];
     [self.comboboxLightOnOff addItemWithObjectValue:@"Off"];
     [self.comboboxLightOnOff addItemWithObjectValue:@"On"];
@@ -53,82 +76,120 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     [self.comboboxLightType addItemWithObjectValue:@"Directional"];
     [self.comboboxLightType setHidden:YES];
     
-    MTLTextureDescriptor *destinationTextureDescriptor = [[MTLTextureDescriptor alloc] init];
-    destinationTextureDescriptor.pixelFormat = self.metalView.colorPixelFormat;
-    destinationTextureDescriptor.width = 766;
-    destinationTextureDescriptor.height = 766;
-    destinationTextureDescriptor.usage = MTLTextureUsageShaderWrite | MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget;
-    _texture = [_device newTextureWithDescriptor:destinationTextureDescriptor];
+    [self.progressCircle setHidden:YES];
     
+    [self.customView setHidden:YES];
+    [self.pointPosX setFloatValue:0.0];
+    [self.pointPosY setFloatValue:0.0];
+    [self.pointPosZ setFloatValue:0.0];
+    [self.pointColR setFloatValue:256.0];
+    [self.pointColG setFloatValue:256.0];
+    [self.pointColB setFloatValue:256.0];
+    [self.pointInten setFloatValue:20.];
+    [self.poinntLin setFloatValue:0.1];
+    [self.pointConst setFloatValue:10.];
+    [self.pointQuad setFloatValue:0.1];
+    
+    [self.dirCustomView setHidden:YES];
+    [self.dirDX setFloatValue:0.0];
+    [self.dirDY setFloatValue:0.0];
+    [self.dirDZ setFloatValue:0.0];
+    [self.dirCR setFloatValue:256.];
+    [self.dirCG setFloatValue:256.];
+    [self.dirCB setFloatValue:256.];
+    [self.dirACR setFloatValue:50.];
+    [self.dirACG setFloatValue:50.];
+    [self.dirACB setFloatValue:50.];
+    [self.dirDCR setFloatValue:200.];
+    [self.dirDCG setFloatValue:200.];
+    [self.dirDCB setFloatValue:200.];
+    [self.dirSCR setFloatValue:256.];
+    [self.dirSCG setFloatValue:256.];
+    [self.dirSCB setFloatValue:256.];
+    [self.dirInt setFloatValue:32.];
+
+    
+    uint indexes[] = {
+        0, 1, 2, 0, 2, 3,
+        4, 5, 7, 5, 6, 7,
+        0, 1, 5, 1, 4, 5,
+        2, 3, 6, 2, 6, 7,
+        0, 5, 6, 0, 3, 6,
+        1, 2, 4, 2, 4, 7
+    };
+    
+    uint colorIndexes[] = {
+        0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0,
+        1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1,
+        2, 2, 2, 2, 2, 2,
+        2, 2, 2, 2, 2, 2
+    };
+    
+    uint normalsIndexes[] = {
+        0, 0, 0, 0, 0, 0,
+        1, 1, 1, 1, 1, 1,
+        3, 3, 3, 3, 3, 3,
+        2, 2, 2, 2, 2, 2,
+        4, 4, 4, 4, 4, 4,
+        5, 5, 5, 5, 5, 5
+    };
+    
+    vector_float2 textureCoords[] = {
+        {1./4., 1./3.}, {1./2., 1./3.}, {1./2., 2./3.},
+        {1./4., 1./3.}, {1./2., 2./3.}, {1./4., 2./3.}, //gora
+        
+        {3./4., 1./3.}, {2./2., 1./3.}, {3./4., 2./3.},
+        {4./4., 1./3.}, {2./2., 2./3.}, {3./4., 2./3.}, //dol
+        
+        {1./4., 1./3.}, {1./2., 1./3.}, {1./4., 0./3.},
+        {1./2., 1./3.}, {2./4., 0./.3}, {1./4., 0./3.}, //tyl
+        
+        {1./2., 2./3.}, {1./4., 2./3.}, {1./4., 3./3.},
+        {1./2., 2./3.}, {1./4., 3./3.}, {2./4., 3./3.}, //przod
+        
+        {1./4., 1./3.}, {0./4., 1./3.}, {0./4., 2./3.},
+        {1./4., 1./3.}, {1./4., 2./3.}, {0./4., 2./3.}, //lewo
+        
+        {1./2., 1./3.}, {1./2., 2./3.}, {3./4., 1./3.},
+        {1./2., 2./3.}, {3./4., 1./3.}, {3./4., 2./3.}  //prawo
+    };
+    
+    self.indexBuffer = [self.device newBufferWithBytes:indexes length:sizeof(indexes) options:MTLResourceStorageModeShared];
+    self.colorIndexBuffer = [self.device newBufferWithBytes:colorIndexes length:sizeof(colorIndexes) options:MTLResourceStorageModeShared];
+    self.normalsIndexBuffer = [self.device newBufferWithBytes:normalsIndexes length:sizeof(normalsIndexes) options:MTLResourceStorageModeShared];
+    self.textureIndexBufferCube = [self.device newBufferWithBytes:textureCoords length:sizeof(textureCoords) options:MTLResourceStorageModeShared];
+
     //cube
     {
         Vertex vertices[] =
         {
-            {{-0.5, -0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},
-            {{ 0.5, -0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},
-            {{ 0.5,  0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},
+            {{-0.5, -0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},    //0
+            {{ 0.5, -0.5, 0.5}, {0., 0., -1.}, {0., 1., 0., 1.}},   //1
+            {{ 0.5,  0.5, 0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},    //2
+            {{ -0.5, 0.5, 0.5}, {0., -1., 0.}, {1., 0., 0., 1.}},   //3
             
-            {{-0.5, -0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},
-            {{ -0.5, 0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},
-            {{ 0.5,  0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},
-            
-            
-            {{-0.5, -0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},
-            {{ 0.5, -0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},
-            {{ 0.5,  0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},
-            
-            {{-0.5, -0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},
-            {{ -0.5, 0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},
-            {{ 0.5,  0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},
-            
-            
-            {{ 0.5, -0.5,  0.5}, {1., 0., 0.}, {0., 1., 0., 1.}},
-            {{ 0.5, -0.5, -0.5}, {1., 0., 0.}, {0., 1., 0., 1.}},
-            {{ 0.5,  0.5, -0.5}, {1., 0., 0.}, {0., 1., 0., 1.}},
-            
-            {{ 0.5, -0.5,  0.5}, {1., 0., 0.}, {0., 1., 0., 1.}},
-            {{ 0.5,  0.5,  0.5}, {1., 0., 0.}, {0., 1., 0., 1.}},
-            {{ 0.5,  0.5, -0.5}, {1., 0., 0.}, {0., 1., 0., 1.}},
-            
-            
-            {{ -0.5, -0.5,  0.5}, {-1., 0., 0.}, {0., 1., 0., 1.}},
-            {{ -0.5, -0.5, -0.5}, {-1., 0., 0.}, {0., 1., 0., 1.}},
-            {{ -0.5,  0.5, -0.5}, {-1., 0., 0.}, {0., 1., 0., 1.}},
-            
-            {{ -0.5, -0.5, 0.5}, {-1., 0., 0.}, {0., 1., 0., 1.}},
-            {{ -0.5, 0.5,  0.5}, {-1., 0., 0.}, {0., 1., 0., 1.}},
-            {{ -0.5, 0.5, -0.5}, {-1., 0., 0.}, {0., 1., 0., 1.}},
-            
-            
-            {{ 0.5,  0.5,  0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},
-            {{ 0.5,  0.5, -0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},
-            {{ -0.5, 0.5, -0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},
-            
-            {{ 0.5,  0.5,  0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},
-            {{ -0.5, 0.5,  0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},
-            {{ -0.5, 0.5, -0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},
-            
-            
-            {{ 0.5, -0.5,   0.5}, {0., -1., 0.}, {0., 0., 1., 1.}},
-            {{ 0.5, -0.5,  -0.5}, {0., -1., 0.}, {0., 0., 1., 1.}},
-            {{ -0.5, -0.5, -0.5}, {0., -1., 0.}, {0., 0., 1., 1.}},
-            
-            {{  0.5, -0.5,  0.5}, {0., -1., 0.}, {0., 0., 1., 1.}},
-            {{ -0.5, -0.5,  0.5}, {0., -1., 0.}, {0., 0., 1., 1.}},
-            {{ -0.5, -0.5, -0.5}, {0., -1., 0.}, {0., 0., 1., 1.}},
+            {{ 0.5, -0.5, -0.5}, {1., 0., 0.}, {1., 0., 0., 1.}},   //4
+            {{-0.5, -0.5, -0.5}, {-1., 0., 0.}, {1., 0., 0., 1.}},  //5
+            {{ -0.5, 0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},  //6
+            {{ 0.5,  0.5, -0.5}, {0., 0., -1.}, {1., 0., 0., 1.}},  //7
         };
         self.vertexBufferCube = [self.device newBufferWithBytes:vertices length:sizeof(vertices) options:MTLResourceStorageModeShared];
         
         Vertex vertices2[11*36];
+        uint indexes2[11*36];
         
         for(int i=0; i<11; i++)
         {
             for(int j=0; j<36; j++)
             {
                 vertices2[i*36+j] = {vertices[j].position-vector_float3(5./1500.)+vector_float3(i*1./1500.), vertices[j].normals, {0.,0.,0.,1.}};
+                indexes2[i*36+j] = indexes[j%36];
             }
         }
         self.vertexBufferCubeBlack = [self.device newBufferWithBytes:vertices2 length:sizeof(vertices2) options:MTLResourceStorageModeShared];
+        self.indexBufferBlack = [self.device newBufferWithBytes:indexes2 length:sizeof(indexes2) options:MTLResourceStorageModeShared];
     }
     //sphere
     {
@@ -139,7 +200,9 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
         float r = 0.8;
         float MIN_ANGLE_CIRCLE = 2.*M_PI/MAX_VAL_CIRCLE;
         float MIN_ANGLE = 2.*M_PI/MAX_VAL;
-        
+        float FULL_ANGLE = 2.*M_PI;
+        float HALF_ANGLE = M_PI;
+        vector_float2 texCoords[45*120*2*3];
         
         for(int j=0; j<(MAX_VAL_CIRCLE)/12; j++)
         {
@@ -152,6 +215,8 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
                                                               (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*(float)i),
                                                               r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j)},
                                                           {(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*(float)i), (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*(float)i), r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j), 1.}};
+                texCoords[i*(int)MAX_VAL_CIRCLE + 6*j] = {(MIN_ANGLE*(float)(i))/FULL_ANGLE, (6*MIN_ANGLE_CIRCLE*(float)(j))/HALF_ANGLE};
+                
                 vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 1] = {{(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*(float)i),
                                                               (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*(float)i),
                                                               r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.))},
@@ -159,6 +224,9 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
                                                                   (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*(float)i),
                                                                   r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.))},
                                                               {(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*(float)i), (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*(float)i), r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)), 1.}};
+                texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 1] = {(MIN_ANGLE*(float)(i))/FULL_ANGLE, (6*MIN_ANGLE_CIRCLE*(float)(j+1))/HALF_ANGLE};
+
+                
                 vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 2] = {{(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*((float)i+1.)),
                                                           (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*((float)i+1.)),
                                                           r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j)},
@@ -166,6 +234,9 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
                                                               (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*((float)i+1.)),
                                                               r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j)},
                                                           {(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*((float)i+1.)), (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*((float)i+1.)), r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j), 1.}};
+                texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 2] = {(MIN_ANGLE*(float)(i+1))/FULL_ANGLE, (6*MIN_ANGLE_CIRCLE*(float)(j))/HALF_ANGLE};
+
+                
                 
                 vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 3] = {{(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*((float)i+1.)),
                                                           (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*((float)i+1.)),
@@ -174,6 +245,9 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
                                                               (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*((float)i+1.)),
                                                               r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j)},
                                                           {(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*((float)i+1.)), (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*((float)i+1.)), r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j), 1.}};
+                texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 3] = {(MIN_ANGLE*(float)(i+1))/FULL_ANGLE, (6*MIN_ANGLE_CIRCLE*(float)(j))/HALF_ANGLE};
+
+                
                 vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 4] = {{(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*(float)i),
                                                               (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*(float)i),
                                                               r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.))},
@@ -181,6 +255,9 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
                                                                   (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*(float)i),
                                                                   r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.))},
                                                               {(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*(float)i), (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*(float)i), r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)), 1.}};
+                texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 4] = {(MIN_ANGLE*(float)(i))/FULL_ANGLE, (6*MIN_ANGLE_CIRCLE*(float)(j+1))/HALF_ANGLE};
+
+                
                 vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 5] = {{(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*((float)i+1.)),
                                                               (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*((float)i+1.)),
                                                               r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.))},
@@ -188,32 +265,12 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
                                                                   (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*((float)i+1.)),
                                                                   r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.))},
                                                               {(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*((float)i+1.)), (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*((float)i+1.)), r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)), 1.}};
+                texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 5] = {(MIN_ANGLE*(float)(i+1))/FULL_ANGLE, (6*MIN_ANGLE_CIRCLE*(float)(j+1))/HALF_ANGLE};
+
             }
         }
         
-        for(int i=0; i<MAX_VAL; i++)
-        {
-            vertices[i*(int)MAX_VAL_CIRCLE] = {{0., 0., r}, {0., 0., r}, {0., 0., r, 1.}};
-            vertices[i*(int)MAX_VAL_CIRCLE + 1] = {{(r*sinf(6.*MIN_ANGLE_CIRCLE*(1.)))*cosf(MIN_ANGLE*(float)i),
-                                                          (r*sinf(6.*MIN_ANGLE_CIRCLE*(1.)))*sinf(MIN_ANGLE*(float)i),
-                                                          r*cosf(6.*MIN_ANGLE_CIRCLE*(1.))},
-                {(r*sinf(6.*MIN_ANGLE_CIRCLE*(1.)))*cosf(MIN_ANGLE*(float)i),
-                                                              (r*sinf(6.*MIN_ANGLE_CIRCLE*(1.)))*sinf(MIN_ANGLE*(float)i),
-                                                              r*cosf(6.*MIN_ANGLE_CIRCLE*(1.))},
-                                                          {(r*sinf(6.*MIN_ANGLE_CIRCLE*(1.)))*cosf(MIN_ANGLE*(float)i), (r*sinf(6.*MIN_ANGLE_CIRCLE*(1.)))*sinf(MIN_ANGLE*(float)i), r*cosf(6.*MIN_ANGLE_CIRCLE*(1.)), 1.}};
-            vertices[i*(int)MAX_VAL_CIRCLE + 2] = {{(r*sinf(6.*MIN_ANGLE_CIRCLE))*cosf(MIN_ANGLE*((float)i+1.)),
-                                                      (r*sinf(6.*MIN_ANGLE_CIRCLE))*sinf(MIN_ANGLE*((float)i+1.)),
-                                                      r*cosf(6.*MIN_ANGLE_CIRCLE)},
-                {(r*sinf(6.*MIN_ANGLE_CIRCLE))*cosf(MIN_ANGLE*((float)i+1.)),
-                                                          (r*sinf(6.*MIN_ANGLE_CIRCLE))*sinf(MIN_ANGLE*((float)i+1.)),
-                                                          r*cosf(6.*MIN_ANGLE_CIRCLE)},
-                                                      {(r*sinf(6.*MIN_ANGLE_CIRCLE))*cosf(MIN_ANGLE*((float)i+1.)), (r*sinf(6.*MIN_ANGLE_CIRCLE))*sinf(MIN_ANGLE*((float)i+1.)), r*cosf(6.*MIN_ANGLE_CIRCLE), 1.}};
-            
-            vertices[i*(int)MAX_VAL_CIRCLE + 3].position = {0., 0., 0.};
-            vertices[i*(int)MAX_VAL_CIRCLE + 4].position = {0.,0.,0.};
-            vertices[i*(int)MAX_VAL_CIRCLE + 5].position = {0.,0.,0.};
-        }
-        
+        self.textureIndexBufferSphere = [self.device newBufferWithBytes:texCoords length:sizeof(texCoords) options:MTLResourceStorageModeShared];
         self.vertexBufferSphere = [self.device newBufferWithBytes:vertices length:sizeof(vertices) options:MTLResourceStorageModeShared];
         
         Vertex vertices2[45*120*2*3];
@@ -300,6 +357,8 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
         float r = 0.5, R = 0.8;
         
         float MIN_THETA_ANGLE = M_PI/45., MIN_PHI_ANGLE = M_PI/45.;
+        
+        
         for(int i=0; i<MAX_VAL; i++)
         {
             for(int j=0; j<(MAX_VAL_CIRCLE)/6; j++)
@@ -352,7 +411,10 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     }
     
     [self.view addSubview:self.metalView];
+    self.textureCube = [self loadTextureWithImageNamed:@"minecraft_dirt"];
+    self.textureSphere = [self loadTextureWithImageNamed:@"ball2"];
 }
+
 
 
 - (void)setRepresentedObject:(id)representedObject {
@@ -364,6 +426,14 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     else [self.comboboxLightType setHidden:YES];
 }
 
+- (IBAction)updateTexture:(id)sender {
+    if([[self.comboCubeTexture stringValue] isEqualToString:@"Minecraft"]) self.textureCube = [self loadTextureWithImageNamed:@"minecraft_dirt"];
+    if([[self.comboCubeTexture stringValue] isEqualToString:@"Gossling"]) self.textureCube = [self loadTextureWithImageNamed:@"gossling"];
+    if([[self.comboCubeTexture stringValue] isEqualToString:@"Paradise"]) self.textureCube = [self loadTextureWithImageNamed:@"cubemap"];
+    if([[self.comboCubeTexture stringValue] isEqualToString:@"Future"]) self.textureCube = [self loadTextureWithImageNamed:@"cubemap2"];
+    if([[self.comboCubeTexture stringValue] isEqualToString:@"Brick"]) self.textureCube = [self loadTextureWithImageNamed:@"brick"];
+    if([[self.comboCubeTexture stringValue] isEqualToString:@"White"]) self.textureCube = [self loadTextureWithImageNamed:@"white"];
+}
 
 -(void)updateMatrixValues
 {
@@ -440,6 +510,7 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
 
 
 
+
 - (void)drawInMTKView:(MTKView *)view
 {
     NSError* error = nil;
@@ -507,13 +578,27 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
 //    renderPassDescriptor.colorAttachments[0].texture = self.texture;
 //    view.currentRenderPassDescriptor.depthAttachment.storeAction = MTLStoreActionStore;
 
+    float dzielAll = 1., dzielPos = 256.;
+    
     struct PointLight punctualLight = {
-        {0.0, 2.0, 0.0},
-        {0.8, 0.8, 0.8},
-        20.0,
-        10.0,
-        0.1,
-        0.1
+        {[self.pointPosX floatValue]/dzielAll, [self.pointPosY floatValue]/dzielAll, [self.pointPosZ floatValue]/dzielAll},
+        {[self.pointColR floatValue]/dzielPos, [self.pointColG floatValue]/dzielPos, [self.pointColB floatValue]/dzielPos},
+        [self.pointInten floatValue],
+        [self.pointConst floatValue],
+        [self.poinntLin floatValue],
+        [self.pointQuad floatValue]
+    };
+    
+    struct DirectionalLight directionalLight {
+        {-[self.dirDX floatValue], -[self.dirDY floatValue], -[self.dirDZ floatValue]},
+        {[self.dirCR floatValue]/dzielPos, [self.dirCG floatValue]/dzielPos, [self.dirCB floatValue]/dzielPos}
+    };
+
+    struct Material material {
+        {[self.dirACR floatValue]/dzielPos, [self.dirACG floatValue]/dzielPos, [self.dirACB floatValue]/dzielPos},
+        {[self.dirDCR floatValue]/dzielPos, [self.dirDCG floatValue]/dzielPos, [self.dirDCB floatValue]/dzielPos},
+        {[self.dirSCR floatValue]/dzielPos, [self.dirSCG floatValue]/dzielPos, [self.dirSCB floatValue]/dzielPos},
+        [self.dirInt floatValue]
     };
     
     renderPassDescriptor.depthAttachment.storeAction = MTLStoreActionStore;
@@ -527,26 +612,47 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     [renderEncoder setVertexBytes:translation length:sizeof(float)*4 atIndex:TranslationFactors];
     [renderEncoder setVertexBytes:projPos length:sizeof(float)*4 atIndex:ProjectionDirections];
     [renderEncoder setVertexBytes:nearFar length:sizeof(float)*2 atIndex:NearFar];
-    
+    [renderEncoder setVertexBuffer:self.indexBuffer offset:0 atIndex:IndexesBuffer];
+    [renderEncoder setVertexBuffer:self.colorIndexBuffer offset:0 atIndex:ColorIndexBuffer];
+    [renderEncoder setVertexBuffer:self.textureIndexBufferCube offset:0 atIndex:TextureCoords];
+    [renderEncoder setVertexBuffer:self.normalsIndexBuffer offset:0 atIndex:NormalsIndexBuffer];
     [renderEncoder setVertexBytes:&isPlot length:sizeof(bool)*2 atIndex:PlotOnOff];
     [renderEncoder setVertexBuffer:[self.device newBufferWithBytes:lines length:sizeof(lines) options:MTLResourceStorageModeShared] offset:0 atIndex:MainBuffer];
-
+    
     int lightType = 0;
-    if([[self.comboboxLightOnOff stringValue] isEqualToString:@"Off"]) [renderEncoder setFragmentBytes:&lightType length:sizeof(int) atIndex:FragmentLightType];
+    if([[self.comboboxLightOnOff stringValue] isEqualToString:@"Off"])
+    {
+        [self.customView setHidden:YES];
+        [self.dirCustomView setHidden:YES];
+        [renderEncoder setFragmentBytes:&lightType length:sizeof(int) atIndex:FragmentLightType];
+    }
     else
     {
         if([[self.comboboxLightType stringValue] isEqualToString:@"Punctual"])
         {
+            [self.customView setHidden:NO];
+            [self.dirCustomView setHidden:YES];
             lightType = 1;
             [renderEncoder setFragmentBytes:&lightType length:sizeof(int) atIndex:FragmentLightType];
         }
         else
         {
+            [self.customView setHidden:YES];
+            [self.dirCustomView setHidden:NO];
             lightType = 2;
             [renderEncoder setFragmentBytes:&lightType length:sizeof(int) atIndex:FragmentLightType];
         }
     }
     [renderEncoder setFragmentBytes:&punctualLight length:sizeof(punctualLight) atIndex:PointLight];
+    [renderEncoder setFragmentBytes:&directionalLight length:sizeof(directionalLight) atIndex:DirectionalLight];
+    [renderEncoder setFragmentBytes:&material length:sizeof(material) atIndex:Material];
+    [renderEncoder setFragmentTexture:self.textureCube atIndex:FragmentTexture];
+    
+    bool indexMode = false;
+    [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
+    
+    bool useTexture = false;
+    [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
     
     [renderEncoder drawPrimitives:MTLPrimitiveTypeLine vertexStart:0 vertexCount:6];
     
@@ -555,22 +661,33 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     
     if([[self.comboBox stringValue] isEqualToString:@"Cube"])
     {
-       
+        useTexture = [self.testureOnOff state];
+        [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
+        indexMode = true;
+        [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
         [renderEncoder setVertexBuffer:self.vertexBufferCube offset:0 atIndex:MainBuffer];
+        [renderEncoder setVertexBuffer:self.normalsIndexBuffer offset:0 atIndex:NormalsIndexBuffer];
         [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:36];
         
         if([self.verticesOnOff state] == YES)
         {
             [renderEncoder setTriangleFillMode:MTLTriangleFillModeLines];
             [renderEncoder setVertexBuffer:self.vertexBufferCubeBlack offset:0 atIndex:MainBuffer];
+            [renderEncoder setVertexBuffer:self.indexBufferBlack offset:0 atIndex:IndexesBuffer];
             [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:11*36];
         }
         
     }
     else if([[self.comboBox stringValue] isEqualToString:@"Sphere"])
     {
+        useTexture = [self.testureOnOff state];
+        [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
         
+        indexMode = false;
+        [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
         [renderEncoder setVertexBuffer:self.vertexBufferSphere offset:0 atIndex:MainBuffer];
+        [renderEncoder setFragmentTexture:self.textureSphere atIndex:FragmentTexture];
+        [renderEncoder setVertexBuffer:self.textureIndexBufferSphere offset:0 atIndex:TextureCoords];
         [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:42*120*2*3];
         
         if([self.verticesOnOff state] == YES)
@@ -584,6 +701,17 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     }
     else if([[self.comboBox stringValue] isEqualToString:@"Plane"])
     {
+        indexMode = false;
+        [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
+        
+        useTexture = false;
+        [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
+        
+        vector_float2 texCoords[] = {
+            {0., 0.}, {0., 1.}, {1., 1.},
+            {0., 0.}, {1., 0.}, {1., 1.}
+        };
+        [renderEncoder setVertexBuffer:[self.device newBufferWithBytes:texCoords length:sizeof(texCoords) options:MTLResourceStorageModeShared] offset:0 atIndex:TextureCoords];
         [renderEncoder setVertexBuffer:self.vertexBufferPlane offset:0 atIndex:MainBuffer];
         [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
         
@@ -596,6 +724,10 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     }
     else if([[self.comboBox stringValue] isEqualToString:@"Cyllinder"])
     {
+        useTexture = false;
+        [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
+        indexMode = false;
+        [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
         [renderEncoder setVertexBuffer:self.vertexBufferCyllinder offset:0 atIndex:MainBuffer];
         [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:12*12];
         if([self.verticesOnOff state] == YES)
@@ -608,6 +740,10 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     }
     else if([[self.comboBox stringValue] isEqualToString:@"Torus"])
     {
+        useTexture = false;
+        [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
+        indexMode = false;
+        [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
         isPlot[1] = true;
         [renderEncoder setVertexBytes:&isPlot length:sizeof(bool)*2 atIndex:PlotOnOff];
         [renderEncoder setVertexBuffer:self.vertexBufferTorus offset:0 atIndex:MainBuffer];
@@ -664,6 +800,8 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     
 }
 
+
+
 -(void)mouseDown:(NSEvent *)event
 {
     float tx =  [event locationInWindow].x, ty =  [event locationInWindow].y;
@@ -689,7 +827,7 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
 -(void)mouseDragged:(NSEvent *)event
 {
     NSLog(@"|x drag");
-    if(true)
+    if(false)
     {
         float tx =  [event locationInWindow].x, ty =  [event locationInWindow].y;
         if(tx>=44. && tx<=44.+766. && ty>=20. && ty<=20.+766.)

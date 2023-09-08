@@ -10,27 +10,28 @@ using namespace metal;
 
 
 
-constant struct DirectionalLight defaultDirectionalLight {
-    .direction = float3(-1.0, -1.0, -1.0),
-    .color = float3(1.0, 1.0, 1.0)
-};
-
-constant struct Material defaultMaterial {
-    .ambientColor = float3(0.2, 0.2, 0.2),
-    .diffuseColor = float3(0.8, 0.8, 0.8),
-    .specularColor = float3(1.0, 1.0, 1.0),
-    .shininess = 32.0
-};
 
 
 
-fragment float4 fragmentMain(VertexOut current [[stage_in]], constant int& lightType[[buffer(FragmentLightType)]],
-                             constant struct PointLight& punctualLight [[buffer(PointLight)]])
+
+fragment float4 fragmentMain(VertexOut current [[stage_in]],
+                             constant int& lightType[[buffer(FragmentLightType)]],
+                             constant struct PointLight& punctualLight [[buffer(PointLight)]],
+                             constant struct DirectionalLight& directionalLight [[buffer(DirectionalLight)]],
+                             constant struct Material& material [[buffer(Material)]],
+                             texture2d<float> texture [[texture(FragmentTexture)]],
+                             constant bool& useTexture [[buffer(UseTexture)]])
 {
+    constexpr sampler samp = sampler(mag_filter::linear, min_filter::linear, mip_filter::linear, coord::normalized,
+                                     r_address::repeat, t_address::repeat, s_address::repeat);
+    float4 color;
+    if(useTexture)
+        color = texture.sample(samp, current.texCoors);
+    else
+        color = current.color;
+    
     if(lightType == 1)
     {
-        //return float4((current.normals) * 0.5 + 0.5, 1.);
-        
         float3 lightVector = punctualLight.position - current.posBef.xyz;
         float distance = length(lightVector);
 
@@ -38,8 +39,6 @@ fragment float4 fragmentMain(VertexOut current [[stage_in]], constant int& light
 
         float diffuse = max(dot(normalize(current.normals), lightVector), 0.0);
 
-       // return float4(float3(diffuse), 1.);
-        
         float3 viewDirection = normalize(float3(0.0, 0.0, 1.0) - current.posBef.xyz);
         float3 reflectionDirection = reflect(-lightVector, normalize(current.normals));
         float specular = pow(max(dot(viewDirection, reflectionDirection), 0.0), 32.0);
@@ -48,36 +47,37 @@ fragment float4 fragmentMain(VertexOut current [[stage_in]], constant int& light
                                    punctualLight.linearAttenuation * distance +
                                    punctualLight.quadraticAttenuation * (distance * distance));
 
-        float3 finalColor = (diffuse + specular) * punctualLight.color * punctualLight.intensity * attenuation * current.color.rgb;
+        float3 finalColor = (diffuse + specular) * punctualLight.color * punctualLight.intensity * attenuation * color.rgb;
 
         return float4(finalColor, 1.0);
     }
     else if(lightType == 2)
     {
-        float3 lightDirection = normalize(defaultDirectionalLight.direction);
+
+        float3 lightDirection = normalize(directionalLight.direction);
         float diffuse = max(dot(normalize(current.normals), -lightDirection), 0.0);
 
         float3 viewDirection = normalize(float3(0.0, 0.0, 1.0) - current.posBef.xyz);
 
         float3 reflectionDirection = reflect(lightDirection, current.normals);
 
-        float specular = pow(max(dot(viewDirection, reflectionDirection), 0.0), defaultMaterial.shininess);
+        float specular = pow(max(dot(viewDirection, reflectionDirection), 0.0), material.shininess);
 
-        float3 ambient = defaultMaterial.ambientColor;
-        float3 diffuseColor = defaultMaterial.diffuseColor * defaultDirectionalLight.color * diffuse;
-        float3 specularColor = defaultMaterial.specularColor * defaultDirectionalLight.color * specular;
+        float3 ambient = material.ambientColor;
+        float3 diffuseColor = material.diffuseColor * directionalLight.color * diffuse;
+        float3 specularColor = material.specularColor * directionalLight.color * specular;
 
         float3 finalColor = ambient + diffuseColor + specularColor;
 
-        return float4(finalColor * current.color.rgb, 1.0);
+        return float4(finalColor * color.rgb, 1.0);
     }
-    return current.color;
+    return color;
 }
 
 fragment float4 fragment2D(VertexOut current [[stage_in]], texture2d<float> texture [[texture(FragmentTexture)]])
 {
-    constexpr sampler samp = sampler(address::clamp_to_edge,
-                                     filter::linear);
+//    constexpr sampler samp = sampler(address::clamp_to_edge,
+//                                     filter::linear);
     
     return current.color;
 }

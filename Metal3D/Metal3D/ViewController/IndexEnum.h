@@ -11,6 +11,10 @@
 typedef enum ShaderDefines
 {
     MainBuffer,
+    IndexesBuffer,
+    ColorIndexBuffer,
+    NormalsIndexBuffer,
+    Sampler,
     RotationAngles,
     ScaleFactors,
     TranslationFactors,
@@ -22,6 +26,9 @@ typedef enum ShaderDefines
     PointLight,
     DirectionalLight,
     Material,
+    DrawWithIndexes,
+    TextureCoords,
+    UseTexture,
 } ShaderDefines;
 
 struct PointLight {

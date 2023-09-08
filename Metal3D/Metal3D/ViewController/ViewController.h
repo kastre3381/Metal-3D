@@ -1,6 +1,7 @@
 #import <Cocoa/Cocoa.h>
 #import <Metal/Metal.h>
 #import <MetalKit/MetalKit.h>
+
 #import <QuartzCore/QuartzCore.h>
 #import <AppKit/AppKit.h>
 #import "IndexEnum.h"
@@ -84,7 +85,17 @@ typedef struct
 @property (nonatomic, strong) id<MTLBuffer> vertexBufferTorus;
 @property (nonatomic, strong) id<MTLBuffer> vertexBufferTorusBlack;
 @property (nonatomic, strong) id<MTLBuffer> vertexBuffer;
-@property (nonatomic, copy)   id<MTLTexture> texture;
+@property (nonatomic, strong) id<MTLBuffer> indexBuffer;
+@property (nonatomic, strong) id<MTLBuffer> indexBufferBlack;
+@property (nonatomic, strong) id<MTLBuffer> colorIndexBuffer;
+@property (nonatomic, strong) id<MTLBuffer> normalsIndexBuffer;
+@property (nonatomic, strong) id<MTLBuffer> textureIndexBufferCube;
+@property (nonatomic, strong) id<MTLBuffer> textureIndexBufferSphere;
+@property (nonatomic, strong) id<MTLSamplerState> sampler;
+@property (nonatomic, retain) id<MTLTexture> textureCube;
+@property (nonatomic, retain) id<MTLTexture> textureSphere;
+@property (weak) IBOutlet NSComboBox *comboCubeTexture;
+
 
 @property (nonatomic) BOOL isTranslate;
 @property (nonatomic) BOOL isRotate;
@@ -93,7 +104,37 @@ typedef struct
 @property (weak) IBOutlet NSComboBox *comboboxLightOnOff;
 @property (weak) IBOutlet NSComboBox *comboboxLightType;
 @property (weak) IBOutlet NSSwitch *verticesOnOff;
+@property (weak) IBOutlet NSSwitch *testureOnOff;
 @property (weak) IBOutlet NSProgressIndicator *progressCircle;
+@property (weak) IBOutlet NSView *customView;
+@property (weak) IBOutlet NSTextField *pointPosX;
+@property (weak) IBOutlet NSTextField *pointPosY;
+@property (weak) IBOutlet NSTextField *pointPosZ;
+@property (weak) IBOutlet NSTextField *pointColR;
+@property (weak) IBOutlet NSTextField *pointColG;
+@property (weak) IBOutlet NSTextField *pointColB;
+@property (weak) IBOutlet NSTextField *pointInten;
+@property (weak) IBOutlet NSTextField *pointConst;
+@property (weak) IBOutlet NSTextField *poinntLin;
+@property (weak) IBOutlet NSTextField *pointQuad;
+@property (weak) IBOutlet NSView *dirCustomView;
+
+@property (weak) IBOutlet NSSlider *dirDX;
+@property (weak) IBOutlet NSSlider *dirDY;
+@property (weak) IBOutlet NSSlider *dirDZ;
+@property (weak) IBOutlet NSTextField *dirCR;
+@property (weak) IBOutlet NSTextField *dirCG;
+@property (weak) IBOutlet NSTextField *dirCB;
+@property (weak) IBOutlet NSTextField *dirACR;
+@property (weak) IBOutlet NSTextField *dirACG;
+@property (weak) IBOutlet NSTextField *dirACB;
+@property (weak) IBOutlet NSTextField *dirDCR;
+@property (weak) IBOutlet NSTextField *dirDCG;
+@property (weak) IBOutlet NSTextField *dirDCB;
+@property (weak) IBOutlet NSTextField *dirSCR;
+@property (weak) IBOutlet NSTextField *dirSCG;
+@property (weak) IBOutlet NSTextField *dirSCB;
+@property (weak) IBOutlet NSTextField *dirInt;
 
 @end
 

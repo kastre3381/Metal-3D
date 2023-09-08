@@ -20,6 +20,7 @@ struct VertexOut
 {
     float4 position [[position]];
     float4 posBef;
+    float2 texCoors;
     float3 normals;
     float4 color;
 };
@@ -27,6 +28,10 @@ struct VertexOut
 typedef enum ShaderDefines
 {
     MainBuffer,
+    IndexesBuffer,
+    ColorIndexBuffer,
+    NormalsIndexBuffer,
+    Sampler,
     RotationAngles,
     ScaleFactors,
     TranslationFactors,
@@ -38,6 +43,9 @@ typedef enum ShaderDefines
     PointLight,
     DirectionalLight,
     Material,
+    DrawWithIndexes,
+    TextureCoords,
+    UseTexture,
 } ShaderDefines;
 
 
