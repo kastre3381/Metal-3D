@@ -1,7 +1,7 @@
 #import <Cocoa/Cocoa.h>
 #import <Metal/Metal.h>
 #import <MetalKit/MetalKit.h>
-
+#import <chrono>
 #import <QuartzCore/QuartzCore.h>
 #import <AppKit/AppKit.h>
 #import "IndexEnum.h"
@@ -91,11 +91,14 @@ typedef struct
 @property (nonatomic, strong) id<MTLBuffer> normalsIndexBuffer;
 @property (nonatomic, strong) id<MTLBuffer> textureIndexBufferCube;
 @property (nonatomic, strong) id<MTLBuffer> textureIndexBufferSphere;
+@property (nonatomic, strong) id<MTLBuffer> textureIndexBufferTorus;
 @property (nonatomic, strong) id<MTLSamplerState> sampler;
 @property (nonatomic, retain) id<MTLTexture> textureCube;
+@property (nonatomic, retain) id<MTLTexture> textureTorus;
 @property (nonatomic, retain) id<MTLTexture> textureSphere;
 @property (weak) IBOutlet NSComboBox *comboCubeTexture;
-
+@property (nonatomic) std::chrono::time_point<std::chrono::system_clock> timeFromBeg;
+@property (weak) IBOutlet NSSwitch *annimationOnOff;
 
 @property (nonatomic) BOOL isTranslate;
 @property (nonatomic) BOOL isRotate;

@@ -59,6 +59,7 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     [self.comboBox addItemWithObjectValue:@"Cyllinder"];
     [self.comboBox addItemWithObjectValue:@"Torus"];
     
+    [self.comboCubeTexture setHidden:YES];
     [self.comboCubeTexture setStringValue:@"Minecraft"];
     [self.comboCubeTexture addItemWithObjectValue:@"Minecraft"];
     [self.comboCubeTexture addItemWithObjectValue:@"Paradise"];
@@ -506,13 +507,62 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     [self.m_projNear setFloatValue:10.];
     [self.m_projFar setFloatValue:100.];
     [self.verticesOnOff setState:NO];
+    [self.annimationOnOff setState:NO];
+    [self.testureOnOff setState:NO];
 }
 
 
+- (IBAction)animationActivated:(id)sender {
+   
+}
 
+- (IBAction)textureActivated:(id)sender {
+    if([self.testureOnOff state] == YES) [self.comboCubeTexture setHidden:NO];
+    else [self.comboCubeTexture setHidden:YES];
+}
+
+
+static float factorX = 1.;
+static float factorY = -1.;
+static float factorZ = 1.;
 
 - (void)drawInMTKView:(MTKView *)view
 {
+//    {
+//        NSError* error = nil;
+//        id<MTLLibrary> library = [self.device newDefaultLibrary];
+//        id<MTLFunction> vertexFunction = [library newFunctionWithName:@"vertex2D"];
+//        id<MTLFunction> fragmentFunction = [library newFunctionWithName:@"fragment2D"];
+//        _pipelineDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
+//        _pipelineDescriptor.fragmentFunction = fragmentFunction;
+//        _pipelineDescriptor.vertexFunction = vertexFunction;
+//        _pipelineDescriptor.colorAttachments[0].pixelFormat = self.metalView.colorPixelFormat;
+//
+//        self.pipelineState = [self.device newRenderPipelineStateWithDescriptor:_pipelineDescriptor error:&error];
+//
+//        id<MTLCommandBuffer> commandBuffer = [self.device newCommandQueue].commandBuffer;
+//        MTLRenderPassDescriptor* renderPassDescriptor = view.currentRenderPassDescriptor;
+//        renderPassDescriptor.colorAttachments[0].texture = [self loadTextureWithImageNamed:@"gossling"];
+//        renderPassDescriptor.colorAttachments[0].texture.usage = MTLTextureUsageRenderTarget;
+//        id<MTLRenderCommandEncoder> renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
+//        [renderEncoder setRenderPipelineState:self.pipelineState];
+//        Vertex ver[] = {
+//            {{-2, -2, 0}, {0., 0., 0.}, {0., 0., 0., 1.}},
+//            {{2, -2, 0}, {0., 0., 0.}, {0., 0., 0., 1.}},
+//            {{-2, 2, 0}, {0., 0., 0.}, {0., 0., 0., 1.}},
+//
+//            {{2, 2, 0}, {0., 0., 0.}, {0., 0., 0., 1.}},
+//            {{2, -2, 0}, {0., 0., 0.}, {0., 0., 0., 1.}},
+//            {{-2, 2, 0}, {0., 0., 0.}, {0., 0., 0., 1.}}
+//        };
+//        [renderEncoder setVertexBuffer:[self.device newBufferWithBytes:ver length:sizeof(ver) options:MTLResourceStorageModeShared] offset:0 atIndex:MainBuffer];
+//        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:2*3];
+//        [renderEncoder endEncoding];
+//        [commandBuffer presentDrawable:view.currentDrawable];
+//        [commandBuffer commit];
+//
+//    }
+    
     NSError* error = nil;
     id<MTLLibrary> library = [self.device newDefaultLibrary];
     id<MTLFunction> vertexFunction = [library newFunctionWithName:@"vertexMain"];
@@ -525,6 +575,16 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     
     self.pipelineState = [self.device newRenderPipelineStateWithDescriptor:_pipelineDescriptor error:&error];
     
+    if([self.annimationOnOff state] == YES)
+    {
+        if([self.m_RotationXSlider floatValue] >= 360.) [self.m_RotationXSlider setFloatValue:0.];
+        if([self.m_RotationYSlider floatValue] <= 0.) [self.m_RotationYSlider setFloatValue:360.];
+        if([self.m_RotationZSlider floatValue] >= 360.) [self.m_RotationZSlider setFloatValue:0.];
+        
+        [self.m_RotationXSlider setFloatValue:[self.m_RotationXSlider floatValue] + 0.5*factorX];
+        [self.m_RotationYSlider setFloatValue:[self.m_RotationYSlider floatValue] + 1.*factorY];
+        [self.m_RotationZSlider setFloatValue:[self.m_RotationZSlider floatValue] + 0.7*factorZ];
+    }
     
     Vertex lines[] =
     {
@@ -581,7 +641,7 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     float dzielAll = 1., dzielPos = 256.;
     
     struct PointLight punctualLight = {
-        {[self.pointPosX floatValue]/dzielAll, [self.pointPosY floatValue]/dzielAll, [self.pointPosZ floatValue]/dzielAll},
+        {[self.pointPosX floatValue]/dzielAll, -[self.pointPosY floatValue]/dzielAll, [self.pointPosZ floatValue]/dzielAll},
         {[self.pointColR floatValue]/dzielPos, [self.pointColG floatValue]/dzielPos, [self.pointColB floatValue]/dzielPos},
         [self.pointInten floatValue],
         [self.pointConst floatValue],
@@ -789,7 +849,7 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
 //    [renderEncoder setVertexBuffer:self.vertexBuffer offset:0 atIndex:MainBuffer];
 //    [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
     
-    
+
     [renderEncoder endEncoding];
     [commandBuffer presentDrawable:view.currentDrawable];
     [commandBuffer commit];

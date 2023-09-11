@@ -15,6 +15,7 @@ vertex VertexOut vertex2D(const device VertexIn* vertexArray [[buffer(MainBuffer
     ver.position = float4(vertexArray[vertexID].position, 1.);
     ver.normals = vertexArray[vertexID].normals;
     ver.color = vertexArray[vertexID].color;
+    ver.texCoors = vertexArray[vertexID].position.xy;
     return ver;
 }
 

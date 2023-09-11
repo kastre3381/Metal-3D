@@ -74,10 +74,8 @@ fragment float4 fragmentMain(VertexOut current [[stage_in]],
     return color;
 }
 
-fragment float4 fragment2D(VertexOut current [[stage_in]], texture2d<float> texture [[texture(FragmentTexture)]])
+fragment float4 fragment2D(VertexOut current [[stage_in]])
 {
-//    constexpr sampler samp = sampler(address::clamp_to_edge,
-//                                     filter::linear);
     
-    return current.color;
+    return {1.,0.,0.,1.};
 }
