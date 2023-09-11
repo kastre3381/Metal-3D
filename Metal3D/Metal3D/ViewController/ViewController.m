@@ -508,6 +508,8 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     [self.m_projFar setFloatValue:100.];
     [self.verticesOnOff setState:NO];
     [self.annimationOnOff setState:NO];
+    [self.animTransOnOff setState:NO];
+    [self.animScaleOnOff setState:NO];
     [self.testureOnOff setState:NO];
 }
 
@@ -525,6 +527,10 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
 static float factorX = 1.;
 static float factorY = -1.;
 static float factorZ = 1.;
+
+static float factorScaleX = 1.;
+static float factorScaleY = -1.;
+static float factorScaleZ = 1.;
 
 - (void)drawInMTKView:(MTKView *)view
 {
@@ -575,16 +581,41 @@ static float factorZ = 1.;
     
     self.pipelineState = [self.device newRenderPipelineStateWithDescriptor:_pipelineDescriptor error:&error];
     
+    float animSpeed = [self.animSpeed floatValue];
+    
     if([self.annimationOnOff state] == YES)
     {
         if([self.m_RotationXSlider floatValue] >= 360.) [self.m_RotationXSlider setFloatValue:0.];
         if([self.m_RotationYSlider floatValue] <= 0.) [self.m_RotationYSlider setFloatValue:360.];
         if([self.m_RotationZSlider floatValue] >= 360.) [self.m_RotationZSlider setFloatValue:0.];
         
-        [self.m_RotationXSlider setFloatValue:[self.m_RotationXSlider floatValue] + 0.5*factorX];
-        [self.m_RotationYSlider setFloatValue:[self.m_RotationYSlider floatValue] + 1.*factorY];
-        [self.m_RotationZSlider setFloatValue:[self.m_RotationZSlider floatValue] + 0.7*factorZ];
+        [self.m_RotationXSlider setFloatValue:[self.m_RotationXSlider floatValue] + 0.5*animSpeed/10.];
+        [self.m_RotationYSlider setFloatValue:[self.m_RotationYSlider floatValue] - 1.0*animSpeed/10.];
+        [self.m_RotationZSlider setFloatValue:[self.m_RotationZSlider floatValue] + 0.7*animSpeed/10.];
     }
+    
+    if([self.animTransOnOff state] == YES)
+    {
+        if([self.m_TransXSlider floatValue] >= 18. || [self.m_TransXSlider floatValue] <= -18.) factorX *= -1;
+        if([self.m_TransYSlider floatValue] >= 18. || [self.m_TransYSlider floatValue] <= -18.) factorY *= -1;
+        if([self.m_TransZSlider floatValue] >= 18. || [self.m_TransZSlider floatValue] <= -18.) factorZ *= -1;
+        
+        [self.m_TransXSlider setFloatValue:[self.m_TransXSlider floatValue] + 0.5/20.*animSpeed*factorX];
+        [self.m_TransYSlider setFloatValue:[self.m_TransYSlider floatValue] + 1.0/20.*animSpeed*factorY];
+        [self.m_TransZSlider setFloatValue:[self.m_TransZSlider floatValue] + 0.7/20.*animSpeed*factorZ];
+    }
+    
+    if([self.animScaleOnOff state] == YES)
+    {
+        if([self.m_ScaleXSlider floatValue] >= 200. || [self.m_ScaleXSlider floatValue] <= 50.) factorScaleX *= -1;
+        if([self.m_ScaleYSlider floatValue] >= 200. || [self.m_ScaleYSlider floatValue] <= 50.) factorScaleY *= -1;
+        if([self.m_ScaleZSlider floatValue] >= 200. || [self.m_ScaleZSlider floatValue] <= 50.) factorScaleZ *= -1;
+        
+        [self.m_ScaleXSlider setFloatValue:[self.m_ScaleXSlider floatValue] + 0.5/20.*animSpeed*factorScaleX];
+        [self.m_ScaleYSlider setFloatValue:[self.m_ScaleYSlider floatValue] + 0.5/20.*animSpeed*factorScaleY];
+        [self.m_ScaleZSlider setFloatValue:[self.m_ScaleZSlider floatValue] + 0.5/20.*animSpeed*factorScaleZ];
+    }
+    
     
     Vertex lines[] =
     {

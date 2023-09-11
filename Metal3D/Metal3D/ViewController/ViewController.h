@@ -99,6 +99,9 @@ typedef struct
 @property (weak) IBOutlet NSComboBox *comboCubeTexture;
 @property (nonatomic) std::chrono::time_point<std::chrono::system_clock> timeFromBeg;
 @property (weak) IBOutlet NSSwitch *annimationOnOff;
+@property (weak) IBOutlet NSSwitch *animTransOnOff;
+@property (weak) IBOutlet NSSwitch *animScaleOnOff;
+@property (weak) IBOutlet NSSlider *animSpeed;
 
 @property (nonatomic) BOOL isTranslate;
 @property (nonatomic) BOOL isRotate;
