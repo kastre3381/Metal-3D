@@ -13,8 +13,9 @@ fragment float4 fragmentMainGradient(VertexOutDoublePass vertexOut [[stage_in]])
     return vertexOut.color;
 }
 
-fragment float4 fragmentMainGrayscale(VertexOutDoublePass vertexOut [[stage_in]]) {
-    return vertexOut.color * float4{0.2126, 0.7126, 0.0722, 1.};
+fragment float4 fragmentMainGrayscale(VertexOutDoublePass vertexOut [[stage_in]], texture2d<float> texture [[texture((int)DoublePassDefines::FragmentTexture)]]) {
+    constexpr sampler samp = sampler(filter::linear);
+    return texture.sample(samp, vertexOut.position.xy) * float4{0.2126, 0.7126, 0.0722, 1.};
 }
 
 

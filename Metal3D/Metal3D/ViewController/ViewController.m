@@ -621,302 +621,304 @@ static float factorScaleZ = 1.;
 {
     NSError* error = nil;
     id<MTLLibrary> library = [self.device newDefaultLibrary];
-    id<MTLFunction> vertexFunction = [library newFunctionWithName:@"vertexMain"];
-    id<MTLFunction> fragmentFunction = [library newFunctionWithName:@"fragmentMain"];
-    _pipelineDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
-    _pipelineDescriptor.fragmentFunction = fragmentFunction;
-    _pipelineDescriptor.vertexFunction = vertexFunction;
-    _pipelineDescriptor.colorAttachments[0].pixelFormat = self.metalView.colorPixelFormat;
-    _pipelineDescriptor.depthAttachmentPixelFormat = self.metalView.depthStencilPixelFormat;
-    
-    self.pipelineState = [self.device newRenderPipelineStateWithDescriptor:_pipelineDescriptor error:&error];
-    
-    float animSpeed = [self.animSpeed floatValue];
-    
-    if([self.annimationOnOff state] == YES)
+    if(![[self.comboBox stringValue] isEqualToString:@"Double render pass"])
     {
-        if([self.m_RotationXSlider floatValue] >= 360.) [self.m_RotationXSlider setFloatValue:0.];
-        if([self.m_RotationYSlider floatValue] <= 0.) [self.m_RotationYSlider setFloatValue:360.];
-        if([self.m_RotationZSlider floatValue] >= 360.) [self.m_RotationZSlider setFloatValue:0.];
-        
-        [self.m_RotationXSlider setFloatValue:[self.m_RotationXSlider floatValue] + 0.5*animSpeed/10.];
-        [self.m_RotationYSlider setFloatValue:[self.m_RotationYSlider floatValue] - 1.0*animSpeed/10.];
-        [self.m_RotationZSlider setFloatValue:[self.m_RotationZSlider floatValue] + 0.7*animSpeed/10.];
-    }
-    
-    if([self.animTransOnOff state] == YES)
-    {
-        if([self.m_TransXSlider floatValue] >= 18. || [self.m_TransXSlider floatValue] <= -18.) factorX *= -1;
-        if([self.m_TransYSlider floatValue] >= 18. || [self.m_TransYSlider floatValue] <= -18.) factorY *= -1;
-        if([self.m_TransZSlider floatValue] >= 18. || [self.m_TransZSlider floatValue] <= -18.) factorZ *= -1;
-        
-        [self.m_TransXSlider setFloatValue:[self.m_TransXSlider floatValue] + 0.5/20.*animSpeed*factorX];
-        [self.m_TransYSlider setFloatValue:[self.m_TransYSlider floatValue] + 1.0/20.*animSpeed*factorY];
-//        [self.m_TransZSlider setFloatValue:[self.m_TransZSlider floatValue] + 0.7/20.*animSpeed*factorZ];
-    }
-    
-    if([self.animScaleOnOff state] == YES)
-    {
-        if([self.m_ScaleXSlider floatValue] >= 200. || [self.m_ScaleXSlider floatValue] <= 50.) factorScaleX *= -1;
-        if([self.m_ScaleYSlider floatValue] >= 200. || [self.m_ScaleYSlider floatValue] <= 50.) factorScaleY *= -1;
-        if([self.m_ScaleZSlider floatValue] >= 200. || [self.m_ScaleZSlider floatValue] <= 50.) factorScaleZ *= -1;
-        
-        [self.m_ScaleXSlider setFloatValue:[self.m_ScaleXSlider floatValue] + 0.5/20.*animSpeed*factorScaleX];
-        [self.m_ScaleYSlider setFloatValue:[self.m_ScaleYSlider floatValue] + 0.5/20.*animSpeed*factorScaleY];
-//        [self.m_ScaleZSlider setFloatValue:[self.m_ScaleZSlider floatValue] + 0.5/20.*animSpeed*factorScaleZ];
-    }
-    
-    
-    Vertex lines[] =
-    {
-        {{-1000., 0., 0.}, {0., 0., 0.}, {0.,0.,1.,1.}},
-        {{1000., 0., 0.}, {0., 0., 0.}, {0.,0.,1.,1.}},
-
-        {{0., -1000., 0.}, {0., 0., 0.}, {0.,0.,1.,1.}},
-        {{0., 1000., 0.}, {0., 0., 0.}, {0.,0.,1.,1.}},
-
-        {{0., 0., -1000.}, {0., 0., 0.}, {0.,0.,1.,1.}},
-        {{0., 0., 1000.}, {0., 0., 0.}, {0.,0.,1.,1.}},
-    };
-    
-    float angles[3];
-    angles[0] = 2.*M_PI/360.*[self.m_RotationXSlider floatValue];
-    angles[1] = 2.*M_PI/360.*[self.m_RotationYSlider floatValue];
-    angles[2] = 2.*M_PI/360.*[self.m_RotationZSlider floatValue];
-    
-    float scale[3];
-    scale[0] = [self.m_ScaleXSlider floatValue]/100.;
-    scale[1] = [self.m_ScaleYSlider floatValue]/100.;
-    scale[2] = [self.m_ScaleZSlider floatValue]/100.;
-    
-    float translation[3];
-    translation[0] = [self.m_TransXSlider floatValue]/10.;
-    translation[1] = [self.m_TransYSlider floatValue]/10.;
-    translation[2] = [self.m_TransZSlider floatValue]/10;
-    
-    
-    float projPos[4];
-    projPos[0] = [self.m_projLeft floatValue]/100.;
-    projPos[1] = [self.m_projRight floatValue]/100.;
-    projPos[2] = [self.m_projBottom floatValue]/100.;
-    projPos[3] = [self.m_projTop floatValue]/100.;
-    float nearFar[2];
-    nearFar[0] = [self.m_projNear floatValue]/10.;
-    nearFar[1] = [self.m_projFar floatValue]/10.;
-    [self updateMatrixValues];
-        
-    
-    
-    bool isPlot[2] = {true, false};
-    
-    MTLDepthStencilDescriptor *depthDescriptor = [MTLDepthStencilDescriptor new];
-    depthDescriptor.depthCompareFunction = MTLCompareFunctionLessEqual;
-    depthDescriptor.depthWriteEnabled = YES;
-    id<MTLDepthStencilState> depthState = [_device newDepthStencilStateWithDescriptor:depthDescriptor];
-    
-    id<MTLCommandBuffer> commandBuffer = [self.device newCommandQueue].commandBuffer;
-    MTLRenderPassDescriptor* renderPassDescriptor = view.currentRenderPassDescriptor;
-//    renderPassDescriptor.colorAttachments[0].texture = self.texture;
-//    view.currentRenderPassDescriptor.depthAttachment.storeAction = MTLStoreActionStore;
-
-    float dzielAll = 1., dzielPos = 256.;
-    
-    struct PointLight punctualLight = {
-        {[self.pointPosX floatValue]/dzielAll, -[self.pointPosY floatValue]/dzielAll, [self.pointPosZ floatValue]/dzielAll},
-        {[self.pointColR floatValue]/dzielPos, [self.pointColG floatValue]/dzielPos, [self.pointColB floatValue]/dzielPos},
-        [self.pointInten floatValue],
-        [self.pointConst floatValue],
-        [self.poinntLin floatValue],
-        [self.pointQuad floatValue]
-    };
-    
-    struct DirectionalLight directionalLight {
-        {-[self.dirDX floatValue], -[self.dirDY floatValue], -[self.dirDZ floatValue]},
-        {[self.dirCR floatValue]/dzielPos, [self.dirCG floatValue]/dzielPos, [self.dirCB floatValue]/dzielPos}
-    };
-
-    struct Material material {
-        {[self.dirACR floatValue]/dzielPos, [self.dirACG floatValue]/dzielPos, [self.dirACB floatValue]/dzielPos},
-        {[self.dirDCR floatValue]/dzielPos, [self.dirDCG floatValue]/dzielPos, [self.dirDCB floatValue]/dzielPos},
-        {[self.dirSCR floatValue]/dzielPos, [self.dirSCG floatValue]/dzielPos, [self.dirSCB floatValue]/dzielPos},
-        [self.dirInt floatValue]
-    };
-    
-    renderPassDescriptor.depthAttachment.storeAction = MTLStoreActionStore;
-    
-    id<MTLRenderCommandEncoder> renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
-    [renderEncoder setRenderPipelineState:self.pipelineState];
-    [renderEncoder setDepthStencilState:depthState];
-    
-    [renderEncoder setVertexBytes:angles length:sizeof(float)*4 atIndex:RotationAngles];
-    [renderEncoder setVertexBytes:scale length:sizeof(float)*4 atIndex:ScaleFactors];
-    [renderEncoder setVertexBytes:translation length:sizeof(float)*4 atIndex:TranslationFactors];
-    [renderEncoder setVertexBytes:projPos length:sizeof(float)*4 atIndex:ProjectionDirections];
-    [renderEncoder setVertexBytes:nearFar length:sizeof(float)*2 atIndex:NearFar];
-    [renderEncoder setVertexBuffer:self.indexBuffer offset:0 atIndex:IndexesBuffer];
-    [renderEncoder setVertexBuffer:self.colorIndexBuffer offset:0 atIndex:ColorIndexBuffer];
-    [renderEncoder setVertexBuffer:self.textureIndexBufferCube offset:0 atIndex:TextureCoords];
-    [renderEncoder setVertexBuffer:self.normalsIndexBuffer offset:0 atIndex:NormalsIndexBuffer];
-    [renderEncoder setVertexBytes:&isPlot length:sizeof(bool)*2 atIndex:PlotOnOff];
-    [renderEncoder setVertexBuffer:[self.device newBufferWithBytes:lines length:sizeof(lines) options:MTLResourceStorageModeShared] offset:0 atIndex:MainBuffer];
-    
-    int lightType = 0;
-    if([[self.comboboxLightOnOff stringValue] isEqualToString:@"Off"])
-    {
-        [self.customView setHidden:YES];
-        [self.dirCustomView setHidden:YES];
-        [renderEncoder setFragmentBytes:&lightType length:sizeof(int) atIndex:FragmentLightType];
+       id<MTLFunction> vertexFunction = [library newFunctionWithName:@"vertexMain"];
+       id<MTLFunction> fragmentFunction = [library newFunctionWithName:@"fragmentMain"];
+       _pipelineDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
+       _pipelineDescriptor.fragmentFunction = fragmentFunction;
+       _pipelineDescriptor.vertexFunction = vertexFunction;
+       _pipelineDescriptor.colorAttachments[0].pixelFormat = self.metalView.colorPixelFormat;
+       _pipelineDescriptor.depthAttachmentPixelFormat = self.metalView.depthStencilPixelFormat;
+       
+       self.pipelineState = [self.device newRenderPipelineStateWithDescriptor:_pipelineDescriptor error:&error];
+       
+       float animSpeed = [self.animSpeed floatValue];
+       
+       if([self.annimationOnOff state] == YES)
+       {
+           if([self.m_RotationXSlider floatValue] >= 360.) [self.m_RotationXSlider setFloatValue:0.];
+           if([self.m_RotationYSlider floatValue] <= 0.) [self.m_RotationYSlider setFloatValue:360.];
+           if([self.m_RotationZSlider floatValue] >= 360.) [self.m_RotationZSlider setFloatValue:0.];
+           
+           [self.m_RotationXSlider setFloatValue:[self.m_RotationXSlider floatValue] + 0.5*animSpeed/10.];
+           [self.m_RotationYSlider setFloatValue:[self.m_RotationYSlider floatValue] - 1.0*animSpeed/10.];
+           [self.m_RotationZSlider setFloatValue:[self.m_RotationZSlider floatValue] + 0.7*animSpeed/10.];
+       }
+       
+       if([self.animTransOnOff state] == YES)
+       {
+           if([self.m_TransXSlider floatValue] >= 18. || [self.m_TransXSlider floatValue] <= -18.) factorX *= -1;
+           if([self.m_TransYSlider floatValue] >= 18. || [self.m_TransYSlider floatValue] <= -18.) factorY *= -1;
+           if([self.m_TransZSlider floatValue] >= 18. || [self.m_TransZSlider floatValue] <= -18.) factorZ *= -1;
+           
+           [self.m_TransXSlider setFloatValue:[self.m_TransXSlider floatValue] + 0.5/20.*animSpeed*factorX];
+           [self.m_TransYSlider setFloatValue:[self.m_TransYSlider floatValue] + 1.0/20.*animSpeed*factorY];
+           //        [self.m_TransZSlider setFloatValue:[self.m_TransZSlider floatValue] + 0.7/20.*animSpeed*factorZ];
+       }
+       
+       if([self.animScaleOnOff state] == YES)
+       {
+           if([self.m_ScaleXSlider floatValue] >= 200. || [self.m_ScaleXSlider floatValue] <= 50.) factorScaleX *= -1;
+           if([self.m_ScaleYSlider floatValue] >= 200. || [self.m_ScaleYSlider floatValue] <= 50.) factorScaleY *= -1;
+           if([self.m_ScaleZSlider floatValue] >= 200. || [self.m_ScaleZSlider floatValue] <= 50.) factorScaleZ *= -1;
+           
+           [self.m_ScaleXSlider setFloatValue:[self.m_ScaleXSlider floatValue] + 0.5/20.*animSpeed*factorScaleX];
+           [self.m_ScaleYSlider setFloatValue:[self.m_ScaleYSlider floatValue] + 0.5/20.*animSpeed*factorScaleY];
+           //        [self.m_ScaleZSlider setFloatValue:[self.m_ScaleZSlider floatValue] + 0.5/20.*animSpeed*factorScaleZ];
+       }
+       
+       
+       Vertex lines[] =
+       {
+           {{-1000., 0., 0.}, {0., 0., 0.}, {0.,0.,1.,1.}},
+           {{1000., 0., 0.}, {0., 0., 0.}, {0.,0.,1.,1.}},
+           
+           {{0., -1000., 0.}, {0., 0., 0.}, {0.,0.,1.,1.}},
+           {{0., 1000., 0.}, {0., 0., 0.}, {0.,0.,1.,1.}},
+           
+           {{0., 0., -1000.}, {0., 0., 0.}, {0.,0.,1.,1.}},
+           {{0., 0., 1000.}, {0., 0., 0.}, {0.,0.,1.,1.}},
+       };
+       
+       float angles[3];
+       angles[0] = 2.*M_PI/360.*[self.m_RotationXSlider floatValue];
+       angles[1] = 2.*M_PI/360.*[self.m_RotationYSlider floatValue];
+       angles[2] = 2.*M_PI/360.*[self.m_RotationZSlider floatValue];
+       
+       float scale[3];
+       scale[0] = [self.m_ScaleXSlider floatValue]/100.;
+       scale[1] = [self.m_ScaleYSlider floatValue]/100.;
+       scale[2] = [self.m_ScaleZSlider floatValue]/100.;
+       
+       float translation[3];
+       translation[0] = [self.m_TransXSlider floatValue]/10.;
+       translation[1] = [self.m_TransYSlider floatValue]/10.;
+       translation[2] = [self.m_TransZSlider floatValue]/10;
+       
+       
+       float projPos[4];
+       projPos[0] = [self.m_projLeft floatValue]/100.;
+       projPos[1] = [self.m_projRight floatValue]/100.;
+       projPos[2] = [self.m_projBottom floatValue]/100.;
+       projPos[3] = [self.m_projTop floatValue]/100.;
+       float nearFar[2];
+       nearFar[0] = [self.m_projNear floatValue]/10.;
+       nearFar[1] = [self.m_projFar floatValue]/10.;
+       [self updateMatrixValues];
+       
+       
+       
+       bool isPlot[2] = {true, false};
+       
+       MTLDepthStencilDescriptor *depthDescriptor = [MTLDepthStencilDescriptor new];
+       depthDescriptor.depthCompareFunction = MTLCompareFunctionLessEqual;
+       depthDescriptor.depthWriteEnabled = YES;
+       id<MTLDepthStencilState> depthState = [_device newDepthStencilStateWithDescriptor:depthDescriptor];
+       
+       id<MTLCommandBuffer> commandBuffer = [self.device newCommandQueue].commandBuffer;
+       MTLRenderPassDescriptor* renderPassDescriptor = view.currentRenderPassDescriptor;
+       //    renderPassDescriptor.colorAttachments[0].texture = self.texture;
+       //    view.currentRenderPassDescriptor.depthAttachment.storeAction = MTLStoreActionStore;
+       
+       float dzielAll = 1., dzielPos = 256.;
+       
+       struct PointLight punctualLight = {
+           {[self.pointPosX floatValue]/dzielAll, -[self.pointPosY floatValue]/dzielAll, [self.pointPosZ floatValue]/dzielAll},
+           {[self.pointColR floatValue]/dzielPos, [self.pointColG floatValue]/dzielPos, [self.pointColB floatValue]/dzielPos},
+           [self.pointInten floatValue],
+           [self.pointConst floatValue],
+           [self.poinntLin floatValue],
+           [self.pointQuad floatValue]
+       };
+       
+       struct DirectionalLight directionalLight {
+           {-[self.dirDX floatValue], -[self.dirDY floatValue], -[self.dirDZ floatValue]},
+           {[self.dirCR floatValue]/dzielPos, [self.dirCG floatValue]/dzielPos, [self.dirCB floatValue]/dzielPos}
+       };
+       
+       struct Material material {
+           {[self.dirACR floatValue]/dzielPos, [self.dirACG floatValue]/dzielPos, [self.dirACB floatValue]/dzielPos},
+           {[self.dirDCR floatValue]/dzielPos, [self.dirDCG floatValue]/dzielPos, [self.dirDCB floatValue]/dzielPos},
+           {[self.dirSCR floatValue]/dzielPos, [self.dirSCG floatValue]/dzielPos, [self.dirSCB floatValue]/dzielPos},
+           [self.dirInt floatValue]
+       };
+       
+       renderPassDescriptor.depthAttachment.storeAction = MTLStoreActionStore;
+       
+       id<MTLRenderCommandEncoder> renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
+       [renderEncoder setRenderPipelineState:self.pipelineState];
+       [renderEncoder setDepthStencilState:depthState];
+       
+       [renderEncoder setVertexBytes:angles length:sizeof(float)*4 atIndex:RotationAngles];
+       [renderEncoder setVertexBytes:scale length:sizeof(float)*4 atIndex:ScaleFactors];
+       [renderEncoder setVertexBytes:translation length:sizeof(float)*4 atIndex:TranslationFactors];
+       [renderEncoder setVertexBytes:projPos length:sizeof(float)*4 atIndex:ProjectionDirections];
+       [renderEncoder setVertexBytes:nearFar length:sizeof(float)*2 atIndex:NearFar];
+       [renderEncoder setVertexBuffer:self.indexBuffer offset:0 atIndex:IndexesBuffer];
+       [renderEncoder setVertexBuffer:self.colorIndexBuffer offset:0 atIndex:ColorIndexBuffer];
+       [renderEncoder setVertexBuffer:self.textureIndexBufferCube offset:0 atIndex:TextureCoords];
+       [renderEncoder setVertexBuffer:self.normalsIndexBuffer offset:0 atIndex:NormalsIndexBuffer];
+       [renderEncoder setVertexBytes:&isPlot length:sizeof(bool)*2 atIndex:PlotOnOff];
+       [renderEncoder setVertexBuffer:[self.device newBufferWithBytes:lines length:sizeof(lines) options:MTLResourceStorageModeShared] offset:0 atIndex:MainBuffer];
+       
+       int lightType = 0;
+       if([[self.comboboxLightOnOff stringValue] isEqualToString:@"Off"])
+       {
+           [self.customView setHidden:YES];
+           [self.dirCustomView setHidden:YES];
+           [renderEncoder setFragmentBytes:&lightType length:sizeof(int) atIndex:FragmentLightType];
+       }
+       else
+       {
+           if([[self.comboboxLightType stringValue] isEqualToString:@"Punctual"])
+           {
+               [self.customView setHidden:NO];
+               [self.dirCustomView setHidden:YES];
+               lightType = 1;
+               [renderEncoder setFragmentBytes:&lightType length:sizeof(int) atIndex:FragmentLightType];
+           }
+           else
+           {
+               [self.customView setHidden:YES];
+               [self.dirCustomView setHidden:NO];
+               lightType = 2;
+               [renderEncoder setFragmentBytes:&lightType length:sizeof(int) atIndex:FragmentLightType];
+           }
+       }
+       [renderEncoder setFragmentBytes:&punctualLight length:sizeof(punctualLight) atIndex:PointLight];
+       [renderEncoder setFragmentBytes:&directionalLight length:sizeof(directionalLight) atIndex:DirectionalLight];
+       [renderEncoder setFragmentBytes:&material length:sizeof(material) atIndex:Material];
+       [renderEncoder setFragmentTexture:self.textureCube atIndex:FragmentTexture];
+       
+       bool indexMode = false;
+       [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
+       
+       bool useTexture = false;
+       [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
+       
+       [renderEncoder drawPrimitives:MTLPrimitiveTypeLine vertexStart:0 vertexCount:6];
+       
+       isPlot[0] = false;
+       [renderEncoder setVertexBytes:&isPlot length:sizeof(bool)*2 atIndex:PlotOnOff];
+       
+       if([[self.comboBox stringValue] isEqualToString:@"Cube"])
+       {
+           useTexture = [self.testureOnOff state];
+           [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
+           indexMode = true;
+           [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
+           [renderEncoder setVertexBuffer:self.vertexBufferCube offset:0 atIndex:MainBuffer];
+           [renderEncoder setVertexBuffer:self.normalsIndexBuffer offset:0 atIndex:NormalsIndexBuffer];
+           [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:36];
+           
+           if([self.verticesOnOff state] == YES)
+           {
+               [renderEncoder setTriangleFillMode:MTLTriangleFillModeLines];
+               [renderEncoder setVertexBuffer:self.vertexBufferCubeBlack offset:0 atIndex:MainBuffer];
+               [renderEncoder setVertexBuffer:self.indexBufferBlack offset:0 atIndex:IndexesBuffer];
+               [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:11*36];
+           }
+       }
+       else if([[self.comboBox stringValue] isEqualToString:@"Sphere"])
+       {
+           useTexture = [self.testureOnOff state];
+           [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
+           
+           indexMode = false;
+           [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
+           [renderEncoder setVertexBuffer:self.vertexBufferSphere offset:0 atIndex:MainBuffer];
+           [renderEncoder setFragmentTexture:self.textureSphere atIndex:FragmentTexture];
+           [renderEncoder setVertexBuffer:self.textureIndexBufferSphere offset:0 atIndex:TextureCoords];
+           [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:42*120*2*3];
+           
+           if([self.verticesOnOff state] == YES)
+           {
+               isPlot[1] = false;
+               [renderEncoder setVertexBytes:&isPlot length:sizeof(bool)*2 atIndex:PlotOnOff];
+               [renderEncoder setTriangleFillMode:MTLTriangleFillModeLines];
+               [renderEncoder setVertexBuffer:self.vertexBufferSphereBlack offset:0 atIndex:MainBuffer];
+               [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:42*120*2*3];
+           }
+       }
+       else if([[self.comboBox stringValue] isEqualToString:@"Plane"])
+       {
+           indexMode = false;
+           [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
+           
+           useTexture = [self.testureOnOff state];
+           [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
+           
+           [renderEncoder setFragmentTexture:self.texturePlane atIndex:FragmentTexture];
+           [renderEncoder setVertexBuffer:self.textureIndexBufferPlane offset:0 atIndex:TextureCoords];
+           [renderEncoder setVertexBuffer:self.vertexBufferPlane offset:0 atIndex:MainBuffer];
+           [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
+           
+           if([self.verticesOnOff state] == YES)
+           {
+               [renderEncoder setTriangleFillMode:MTLTriangleFillModeLines];
+               [renderEncoder setVertexBuffer:self.vertexBufferPlaneBlack offset:0 atIndex:MainBuffer];
+               [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:11*6];
+           }
+       }
+       else if([[self.comboBox stringValue] isEqualToString:@"Cyllinder"])
+       {
+           useTexture = false;
+           [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
+           indexMode = false;
+           [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
+           [renderEncoder setVertexBuffer:self.vertexBufferCyllinder offset:0 atIndex:MainBuffer];
+           [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:12*12];
+           if([self.verticesOnOff state] == YES)
+           {
+               [renderEncoder setTriangleFillMode:MTLTriangleFillModeLines];
+               [renderEncoder setVertexBuffer:self.vertexBufferCyllinderBlack offset:0 atIndex:MainBuffer];
+               [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:11*12*12];
+           }
+       }
+       else if([[self.comboBox stringValue] isEqualToString:@"Torus"])
+       {
+           useTexture = [self.testureOnOff state];
+           [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
+           indexMode = false;
+           [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
+           isPlot[1] = true;
+           [renderEncoder setVertexBytes:&isPlot length:sizeof(bool)*2 atIndex:PlotOnOff];
+           [renderEncoder setVertexBuffer:self.vertexBufferTorus offset:0 atIndex:MainBuffer];
+           [renderEncoder setVertexBuffer:self.textureIndexBufferTorus offset:0 atIndex:TextureCoords];
+           [renderEncoder setFragmentTexture:self.textureTorus atIndex:FragmentTexture];
+           [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:60*90*2*3];
+           
+           if([self.verticesOnOff state] == YES)
+           {
+               isPlot[1] = false;
+               [renderEncoder setVertexBytes:&isPlot length:sizeof(bool)*2 atIndex:PlotOnOff];
+               [renderEncoder setTriangleFillMode:MTLTriangleFillModeLines];
+               [renderEncoder setVertexBuffer:self.vertexBufferTorusBlack offset:0 atIndex:MainBuffer];
+               [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:60*90*2*3];
+           }
+       }
+       if([[self.comboBox stringValue] isEqualToString:@"Human"])
+       {
+           useTexture = false;
+           [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
+           indexMode = true;
+           
+           [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
+           [renderEncoder setVertexBuffer:self.vertexBufferHuman offset:0 atIndex:MainBuffer];
+           [renderEncoder setVertexBuffer:self.indexBufferHuman offset:0 atIndex:NormalsIndexBuffer];
+           [renderEncoder setVertexBuffer:self.indexBufferHuman offset:0 atIndex:IndexesBuffer];
+           [renderEncoder setVertexBuffer:self.indexBufferHuman offset:0 atIndex:ColorIndexBuffer];
+           //        [renderEncoder setVertexBuffer:self.indexBufferHuman offset:0 atIndex:TextureCoords]
+           [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:282];
+           
+       }
+        [renderEncoder endEncoding];
+        [commandBuffer presentDrawable:view.currentDrawable];
+        [commandBuffer commit];
+        [commandBuffer waitUntilCompleted];
     }
     else
-    {
-        if([[self.comboboxLightType stringValue] isEqualToString:@"Punctual"])
-        {
-            [self.customView setHidden:NO];
-            [self.dirCustomView setHidden:YES];
-            lightType = 1;
-            [renderEncoder setFragmentBytes:&lightType length:sizeof(int) atIndex:FragmentLightType];
-        }
-        else
-        {
-            [self.customView setHidden:YES];
-            [self.dirCustomView setHidden:NO];
-            lightType = 2;
-            [renderEncoder setFragmentBytes:&lightType length:sizeof(int) atIndex:FragmentLightType];
-        }
-    }
-    [renderEncoder setFragmentBytes:&punctualLight length:sizeof(punctualLight) atIndex:PointLight];
-    [renderEncoder setFragmentBytes:&directionalLight length:sizeof(directionalLight) atIndex:DirectionalLight];
-    [renderEncoder setFragmentBytes:&material length:sizeof(material) atIndex:Material];
-    [renderEncoder setFragmentTexture:self.textureCube atIndex:FragmentTexture];
-    
-    bool indexMode = false;
-    [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
-    
-    bool useTexture = false;
-    [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
-    
-    [renderEncoder drawPrimitives:MTLPrimitiveTypeLine vertexStart:0 vertexCount:6];
-    
-    isPlot[0] = false;
-    [renderEncoder setVertexBytes:&isPlot length:sizeof(bool)*2 atIndex:PlotOnOff];
-    
-    if([[self.comboBox stringValue] isEqualToString:@"Cube"])
-    {
-        useTexture = [self.testureOnOff state];
-        [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
-        indexMode = true;
-        [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
-        [renderEncoder setVertexBuffer:self.vertexBufferCube offset:0 atIndex:MainBuffer];
-        [renderEncoder setVertexBuffer:self.normalsIndexBuffer offset:0 atIndex:NormalsIndexBuffer];
-        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:36];
-        
-        if([self.verticesOnOff state] == YES)
-        {
-            [renderEncoder setTriangleFillMode:MTLTriangleFillModeLines];
-            [renderEncoder setVertexBuffer:self.vertexBufferCubeBlack offset:0 atIndex:MainBuffer];
-            [renderEncoder setVertexBuffer:self.indexBufferBlack offset:0 atIndex:IndexesBuffer];
-            [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:11*36];
-        }
-        [renderEncoder endEncoding];
-    }
-    else if([[self.comboBox stringValue] isEqualToString:@"Sphere"])
-    {
-        useTexture = [self.testureOnOff state];
-        [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
-        
-        indexMode = false;
-        [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
-        [renderEncoder setVertexBuffer:self.vertexBufferSphere offset:0 atIndex:MainBuffer];
-        [renderEncoder setFragmentTexture:self.textureSphere atIndex:FragmentTexture];
-        [renderEncoder setVertexBuffer:self.textureIndexBufferSphere offset:0 atIndex:TextureCoords];
-        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:42*120*2*3];
-        
-        if([self.verticesOnOff state] == YES)
-        {
-            isPlot[1] = false;
-            [renderEncoder setVertexBytes:&isPlot length:sizeof(bool)*2 atIndex:PlotOnOff];
-            [renderEncoder setTriangleFillMode:MTLTriangleFillModeLines];
-            [renderEncoder setVertexBuffer:self.vertexBufferSphereBlack offset:0 atIndex:MainBuffer];
-            [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:42*120*2*3];
-        }
-        [renderEncoder endEncoding];
-    }
-    else if([[self.comboBox stringValue] isEqualToString:@"Plane"])
-    {
-        indexMode = false;
-        [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
-        
-        useTexture = [self.testureOnOff state];
-        [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
-
-        [renderEncoder setFragmentTexture:self.texturePlane atIndex:FragmentTexture];
-        [renderEncoder setVertexBuffer:self.textureIndexBufferPlane offset:0 atIndex:TextureCoords];
-        [renderEncoder setVertexBuffer:self.vertexBufferPlane offset:0 atIndex:MainBuffer];
-        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
-        
-        if([self.verticesOnOff state] == YES)
-        {
-            [renderEncoder setTriangleFillMode:MTLTriangleFillModeLines];
-            [renderEncoder setVertexBuffer:self.vertexBufferPlaneBlack offset:0 atIndex:MainBuffer];
-            [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:11*6];
-        }
-        [renderEncoder endEncoding];
-    }
-    else if([[self.comboBox stringValue] isEqualToString:@"Cyllinder"])
-    {
-        useTexture = false;
-        [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
-        indexMode = false;
-        [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
-        [renderEncoder setVertexBuffer:self.vertexBufferCyllinder offset:0 atIndex:MainBuffer];
-        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:12*12];
-        if([self.verticesOnOff state] == YES)
-        {
-            [renderEncoder setTriangleFillMode:MTLTriangleFillModeLines];
-            [renderEncoder setVertexBuffer:self.vertexBufferCyllinderBlack offset:0 atIndex:MainBuffer];
-            [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:11*12*12];
-        }
-        [renderEncoder endEncoding];
-    }
-    else if([[self.comboBox stringValue] isEqualToString:@"Torus"])
-    {
-        useTexture = [self.testureOnOff state];
-        [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
-        indexMode = false;
-        [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
-        isPlot[1] = true;
-        [renderEncoder setVertexBytes:&isPlot length:sizeof(bool)*2 atIndex:PlotOnOff];
-        [renderEncoder setVertexBuffer:self.vertexBufferTorus offset:0 atIndex:MainBuffer];
-        [renderEncoder setVertexBuffer:self.textureIndexBufferTorus offset:0 atIndex:TextureCoords];
-        [renderEncoder setFragmentTexture:self.textureTorus atIndex:FragmentTexture];
-        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:60*90*2*3];
-        
-        if([self.verticesOnOff state] == YES)
-        {
-            isPlot[1] = false;
-            [renderEncoder setVertexBytes:&isPlot length:sizeof(bool)*2 atIndex:PlotOnOff];
-            [renderEncoder setTriangleFillMode:MTLTriangleFillModeLines];
-            [renderEncoder setVertexBuffer:self.vertexBufferTorusBlack offset:0 atIndex:MainBuffer];
-            [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:60*90*2*3];
-        }
-        [renderEncoder endEncoding];
-    }
-    if([[self.comboBox stringValue] isEqualToString:@"Human"])
-    {
-        useTexture = false;
-        [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
-        indexMode = true;
-        
-        [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
-        [renderEncoder setVertexBuffer:self.vertexBufferHuman offset:0 atIndex:MainBuffer];
-        [renderEncoder setVertexBuffer:self.indexBufferHuman offset:0 atIndex:NormalsIndexBuffer];
-        [renderEncoder setVertexBuffer:self.indexBufferHuman offset:0 atIndex:IndexesBuffer];
-        [renderEncoder setVertexBuffer:self.indexBufferHuman offset:0 atIndex:ColorIndexBuffer];
-//        [renderEncoder setVertexBuffer:self.indexBufferHuman offset:0 atIndex:TextureCoords]
-        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:282];
-        [renderEncoder endEncoding];
-    }
-    if([[self.comboBox stringValue] isEqualToString:@"Double render pass"])
     {
         NSString *vertexShaderSource = @"vertexMainDoublePass";
         NSString *gradientFragmentShaderSource = @"fragmentMainGradient";
@@ -959,27 +961,49 @@ static float factorScaleZ = 1.;
             {{1., -1.}, {0., 1., 1., 1.}},
             {{1., 1.}, {1., 0., 1., 1.}}
         };
-        [renderEncoder endEncoding];
-        id<MTLRenderCommandEncoder> renderEncoder2 = [commandBuffer renderCommandEncoderWithDescriptor:gradientRenderPassDescriptor];
+        
+        id<MTLCommandBuffer> commandBuffer2 = [self.commandQueue commandBuffer];
+        id<MTLRenderCommandEncoder> renderEncoder2 = [commandBuffer2 renderCommandEncoderWithDescriptor:gradientRenderPassDescriptor];
         [renderEncoder2 setRenderPipelineState:gradientPipelineState];
         [renderEncoder2 setVertexBuffer:[self.device newBufferWithBytes:ver length:sizeof(ver) options:MTLResourceStorageModeShared] offset:0 atIndex:(int)DoublePassDefines::MainBuffer];
         [renderEncoder2 drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
         [renderEncoder2 endEncoding];
-//        MTLTextureDescriptor *textureDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:self.metalView.colorPixelFormat
-//                                                                                                  width:722
-//                                                                                                 height:746
-//                                                                                              mipmapped:NO];
-//        textureDescriptor.usage = MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite;
-//        id<MTLTexture> renderTargetTexture = [self.device newTextureWithDescriptor:textureDescriptor];
-//        renderPassDescriptor.colorAttachments[0].texture = renderTargetTexture;
-//        renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
-//        renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 1.0);
-//        renderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
+        [commandBuffer2 commit];
+        [commandBuffer2 waitUntilCompleted];
+        
+        MTLTextureDescriptor *grayscaleTextureDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
+                                                                                                            width:722
+                                                                                                           height:746
+                                                                                                        mipmapped:NO];
+        grayscaleTextureDescriptor.usage = MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite;
+        id<MTLTexture> grayscaleTexture = [self.device newTextureWithDescriptor:grayscaleTextureDescriptor];
+
+        MTLRenderPassDescriptor *grayscaleRenderPassDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
+        grayscaleRenderPassDescriptor.colorAttachments[0].texture = grayscaleTexture;
+        grayscaleRenderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
+        grayscaleRenderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 1.0);
+        grayscaleRenderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
+
+        MTLRenderPipelineDescriptor *grayscalePipelineDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
+        grayscalePipelineDescriptor.vertexFunction = vertexFunctionDoublePass;
+        grayscalePipelineDescriptor.fragmentFunction = grayscaleFragmentFunction;
+        grayscalePipelineDescriptor.colorAttachments[0].pixelFormat = self.metalView.colorPixelFormat;
+
+        id<MTLRenderPipelineState> grayscalePipelineState = [self.device newRenderPipelineStateWithDescriptor:grayscalePipelineDescriptor error:&error];
+
+        id<MTLCommandBuffer> commandBuffer3 = [self.commandQueue commandBuffer];
+        id<MTLRenderCommandEncoder> renderEncoder3 = [commandBuffer2 renderCommandEncoderWithDescriptor:grayscaleRenderPassDescriptor];
+        [renderEncoder3 setRenderPipelineState:grayscalePipelineState];
+        [renderEncoder3 setVertexBuffer:[self.device newBufferWithBytes:ver length:sizeof(ver) options:MTLResourceStorageModeShared] offset:0 atIndex:(int)DoublePassDefines::MainBuffer];
+        [renderEncoder3 setFragmentTexture:gradientTexture atIndex:0];
+        [renderEncoder3 drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
+        [renderEncoder3 endEncoding];
+        [commandBuffer3 commit];
+        [commandBuffer3 waitUntilCompleted];
+
     }
  
-    [commandBuffer presentDrawable:view.currentDrawable];
-    [commandBuffer commit];
-    [commandBuffer waitUntilCompleted];
+
 }
 
 - (void)mtkView:(MTKView *)view drawableSizeWillChange:(CGSize)size

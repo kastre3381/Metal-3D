@@ -60,12 +60,11 @@ typedef enum ShaderDefines
     UseTexture,
 } ShaderDefines;
 
-constant int START_DOUBLE_PASS = (int)ShaderDefines::UseTexture + 1;
 
 enum class DoublePassDefines
 {
-    START_DOUBLE_PASS,
-    MainBuffer,
+    MainBuffer = 20,
+    FragmentTexture,
 };
 
 struct DirectionalLight {
