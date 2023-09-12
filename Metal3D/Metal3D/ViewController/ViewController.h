@@ -83,6 +83,7 @@ typedef struct
 @property (nonatomic, strong) id<MTLBuffer> vertexBufferCyllinder;
 @property (nonatomic, strong) id<MTLBuffer> vertexBufferCyllinderBlack;
 @property (nonatomic, strong) id<MTLBuffer> vertexBufferTorus;
+@property (nonatomic, strong) id<MTLBuffer> vertexBufferHuman;
 @property (nonatomic, strong) id<MTLBuffer> vertexBufferTorusBlack;
 @property (nonatomic, strong) id<MTLBuffer> vertexBuffer;
 @property (nonatomic, strong) id<MTLBuffer> indexBuffer;
@@ -92,6 +93,7 @@ typedef struct
 @property (nonatomic, strong) id<MTLBuffer> textureIndexBufferCube;
 @property (nonatomic, strong) id<MTLBuffer> textureIndexBufferSphere;
 @property (nonatomic, strong) id<MTLBuffer> textureIndexBufferTorus;
+@property (nonatomic, strong) id<MTLBuffer> indexBufferHuman;
 @property (nonatomic, strong) id<MTLSamplerState> sampler;
 @property (nonatomic, retain) id<MTLTexture> textureCube;
 @property (nonatomic, retain) id<MTLTexture> textureTorus;

@@ -11,6 +11,7 @@
 		0514CEBA2AA1BF1D0084C32F /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0514CEB72AA1BF1D0084C32F /* MetalKit.framework */; };
 		0514CEBC2AA1C13C0084C32F /* VertexShader.metal in Sources */ = {isa = PBXBuildFile; fileRef = 0514CEBB2AA1C13C0084C32F /* VertexShader.metal */; };
 		0514CEBE2AA1C1530084C32F /* FragmentShader.metal in Sources */ = {isa = PBXBuildFile; fileRef = 0514CEBD2AA1C1530084C32F /* FragmentShader.metal */; };
+		05CB90D22AAF497300B358B4 /* x.obj in Resources */ = {isa = PBXBuildFile; fileRef = 05CB90D12AAF497300B358B4 /* x.obj */; };
 		05CF42032AA1BB6500B8B7ED /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 05CF42022AA1BB6500B8B7ED /* AppDelegate.m */; };
 		05CF42062AA1BB6500B8B7ED /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 05CF42052AA1BB6500B8B7ED /* ViewController.m */; };
 		05CF42092AA1BB6500B8B7ED /* Metal3D.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 05CF42072AA1BB6500B8B7ED /* Metal3D.xcdatamodeld */; };
@@ -26,6 +27,7 @@
 		0514CEBD2AA1C1530084C32F /* FragmentShader.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = FragmentShader.metal; sourceTree = "<group>"; };
 		0514CEBF2AA1C1670084C32F /* Defines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Defines.h; sourceTree = "<group>"; };
 		0514CEC02AA1C6D70084C32F /* IndexEnum.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IndexEnum.h; sourceTree = "<group>"; };
+		05CB90D12AAF497300B358B4 /* x.obj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = x.obj; path = ../../../../../../Downloads/x.obj; sourceTree = "<group>"; };
 		05CF41FE2AA1BB6500B8B7ED /* Metal3D.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Metal3D.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		05CF42012AA1BB6500B8B7ED /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		05CF42022AA1BB6500B8B7ED /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -63,6 +65,7 @@
 		0514CEC12AA203090084C32F /* ViewController */ = {
 			isa = PBXGroup;
 			children = (
+				05CB90D12AAF497300B358B4 /* x.obj */,
 				0514CEC02AA1C6D70084C32F /* IndexEnum.h */,
 				05CF42042AA1BB6500B8B7ED /* ViewController.h */,
 				05CF42052AA1BB6500B8B7ED /* ViewController.m */,
@@ -178,6 +181,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				05CB90D22AAF497300B358B4 /* x.obj in Resources */,
 				05CF420B2AA1BB6700B8B7ED /* Assets.xcassets in Resources */,
 				05CF420E2AA1BB6700B8B7ED /* Main.storyboard in Resources */,
 			);

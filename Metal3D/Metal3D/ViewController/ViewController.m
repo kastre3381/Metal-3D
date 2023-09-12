@@ -58,6 +58,7 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     [self.comboBox addItemWithObjectValue:@"Plane"];
     [self.comboBox addItemWithObjectValue:@"Cyllinder"];
     [self.comboBox addItemWithObjectValue:@"Torus"];
+    [self.comboBox addItemWithObjectValue:@"Human"];
     
     [self.comboCubeTexture setHidden:YES];
     [self.comboCubeTexture setStringValue:@"Minecraft"];
@@ -66,7 +67,7 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     [self.comboCubeTexture addItemWithObjectValue:@"Future"];
     [self.comboCubeTexture addItemWithObjectValue:@"White"];
     [self.comboCubeTexture addItemWithObjectValue:@"Gossling"];
-
+    
     [self.comboboxLightOnOff setStringValue:@"Off"];
     [self.comboboxLightOnOff addItemWithObjectValue:@"Off"];
     [self.comboboxLightOnOff addItemWithObjectValue:@"On"];
@@ -107,7 +108,7 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     [self.dirSCG setFloatValue:256.];
     [self.dirSCB setFloatValue:256.];
     [self.dirInt setFloatValue:32.];
-
+    
     
     uint indexes[] = {
         0, 1, 2, 0, 2, 3,
@@ -160,7 +161,7 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     self.colorIndexBuffer = [self.device newBufferWithBytes:colorIndexes length:sizeof(colorIndexes) options:MTLResourceStorageModeShared];
     self.normalsIndexBuffer = [self.device newBufferWithBytes:normalsIndexes length:sizeof(normalsIndexes) options:MTLResourceStorageModeShared];
     self.textureIndexBufferCube = [self.device newBufferWithBytes:textureCoords length:sizeof(textureCoords) options:MTLResourceStorageModeShared];
-
+    
     //cube
     {
         Vertex vertices[] =
@@ -209,64 +210,64 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
             for(int i=0; i<MAX_VAL; i++)
             {
                 vertices[i*(int)MAX_VAL_CIRCLE + 6*j] = {{(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*(float)i),
-                                                          (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*(float)i),
-                                                          r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j)},
+                    (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*(float)i),
+                    r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j)},
                     {(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*(float)i),
-                                                              (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*(float)i),
-                                                              r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j)},
-                                                          {(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*(float)i), (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*(float)i), r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j), 1.}};
+                        (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*(float)i),
+                        r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j)},
+                    {(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*(float)i), (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*(float)i), r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j), 1.}};
                 texCoords[i*(int)MAX_VAL_CIRCLE + 6*j] = {(MIN_ANGLE*(float)(i))/FULL_ANGLE, (6*MIN_ANGLE_CIRCLE*(float)(j))/HALF_ANGLE};
                 
                 vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 1] = {{(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*(float)i),
-                                                              (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*(float)i),
-                                                              r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.))},
+                    (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*(float)i),
+                    r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.))},
                     {(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*(float)i),
-                                                                  (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*(float)i),
-                                                                  r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.))},
-                                                              {(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*(float)i), (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*(float)i), r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)), 1.}};
+                        (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*(float)i),
+                        r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.))},
+                    {(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*(float)i), (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*(float)i), r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)), 1.}};
                 texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 1] = {(MIN_ANGLE*(float)(i))/FULL_ANGLE, (6*MIN_ANGLE_CIRCLE*(float)(j+1))/HALF_ANGLE};
-
+                
                 
                 vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 2] = {{(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*((float)i+1.)),
-                                                          (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*((float)i+1.)),
-                                                          r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j)},
+                    (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*((float)i+1.)),
+                    r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j)},
                     {(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*((float)i+1.)),
-                                                              (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*((float)i+1.)),
-                                                              r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j)},
-                                                          {(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*((float)i+1.)), (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*((float)i+1.)), r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j), 1.}};
+                        (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*((float)i+1.)),
+                        r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j)},
+                    {(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*((float)i+1.)), (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*((float)i+1.)), r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j), 1.}};
                 texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 2] = {(MIN_ANGLE*(float)(i+1))/FULL_ANGLE, (6*MIN_ANGLE_CIRCLE*(float)(j))/HALF_ANGLE};
-
+                
                 
                 
                 vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 3] = {{(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*((float)i+1.)),
-                                                          (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*((float)i+1.)),
-                                                          r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j)},
+                    (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*((float)i+1.)),
+                    r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j)},
                     {(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*((float)i+1.)),
-                                                              (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*((float)i+1.)),
-                                                              r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j)},
-                                                          {(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*((float)i+1.)), (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*((float)i+1.)), r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j), 1.}};
+                        (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*((float)i+1.)),
+                        r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j)},
+                    {(r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*cosf(MIN_ANGLE*((float)i+1.)), (r*sinf(6.*MIN_ANGLE_CIRCLE*(float)j))*sinf(MIN_ANGLE*((float)i+1.)), r*cosf(6.*MIN_ANGLE_CIRCLE*(float)j), 1.}};
                 texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 3] = {(MIN_ANGLE*(float)(i+1))/FULL_ANGLE, (6*MIN_ANGLE_CIRCLE*(float)(j))/HALF_ANGLE};
-
+                
                 
                 vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 4] = {{(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*(float)i),
-                                                              (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*(float)i),
-                                                              r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.))},
+                    (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*(float)i),
+                    r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.))},
                     {(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*(float)i),
-                                                                  (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*(float)i),
-                                                                  r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.))},
-                                                              {(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*(float)i), (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*(float)i), r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)), 1.}};
+                        (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*(float)i),
+                        r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.))},
+                    {(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*(float)i), (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*(float)i), r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)), 1.}};
                 texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 4] = {(MIN_ANGLE*(float)(i))/FULL_ANGLE, (6*MIN_ANGLE_CIRCLE*(float)(j+1))/HALF_ANGLE};
-
+                
                 
                 vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 5] = {{(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*((float)i+1.)),
-                                                              (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*((float)i+1.)),
-                                                              r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.))},
+                    (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*((float)i+1.)),
+                    r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.))},
                     {(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*((float)i+1.)),
-                                                                  (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*((float)i+1.)),
-                                                                  r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.))},
-                                                              {(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*((float)i+1.)), (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*((float)i+1.)), r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)), 1.}};
+                        (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*((float)i+1.)),
+                        r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.))},
+                    {(r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*cosf(MIN_ANGLE*((float)i+1.)), (r*sinf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)))*sinf(MIN_ANGLE*((float)i+1.)), r*cosf(6.*MIN_ANGLE_CIRCLE*((float)j+1.)), 1.}};
                 texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 5] = {(MIN_ANGLE*(float)(i+1))/FULL_ANGLE, (6*MIN_ANGLE_CIRCLE*(float)(j+1))/HALF_ANGLE};
-
+                
             }
         }
         
@@ -323,7 +324,7 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
             vertices[12*i+3] = {{pointX, pointY, 1}, {0., 0., 0.}, {1., 0., 0., 1.}};
             vertices[12*i+4] = {{pointXNext, pointYNext, 1}, {0., 0., 0.}, {1., 0., 0., 1.}};
             vertices[12*i+5] = {{0., 0., 1}, {0., 0., 1.}, {1., 0., 0., 1.}};
-         
+            
             vertices[12*i+6] = {{pointX, pointY, 1}, {pointX, pointY, 0.}, {1., 0., 0., 1.}};
             vertices[12*i+7] = {{pointXNext, pointYNext, 1}, {pointXNext, pointYNext, 0.}, {1., 0., 0., 1.}};
             vertices[12*i+8] = {{pointX, pointY, -1}, {pointX, pointY, 0.}, {0., 1., 0., 1.}};
@@ -331,7 +332,7 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
             vertices[12*i+9] = {{pointXNext, pointYNext, -1}, {pointXNext, pointYNext, 0.}, {0., 1., 0., 1.}};
             vertices[12*i+10] = {{pointXNext, pointYNext, 1}, {pointXNext, pointYNext, 0.}, {1., 0., 0., 1.}};
             vertices[12*i+11] = {{pointX, pointY, -1}, {pointX, pointY, 0.}, {0., 1., 0., 1.}};
-
+            
         }
         
         self.vertexBufferCyllinder = [self.device newBufferWithBytes:vertices length:sizeof(vertices) options:MTLResourceStorageModeShared];
@@ -365,48 +366,48 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
         {
             for(int j=0; j<(MAX_VAL_CIRCLE)/6; j++)
             {
-
+                
                 
                 vertices[i*(int)MAX_VAL_CIRCLE + 6*j] = {{(R+r*cosf(6.*MIN_THETA_ANGLE*(float)j))*cosf(MIN_PHI_ANGLE*(float)i),
-                                                          (R+r*cosf(6.*MIN_THETA_ANGLE*(float)j))*sinf(MIN_PHI_ANGLE*(float)i),
-                                                          r*sinf(6.*MIN_THETA_ANGLE*(float)j)},
-                                                          calculateNormalToTorus(0.5, 0.8, 6.*MIN_THETA_ANGLE*(float)j, MIN_PHI_ANGLE*(float)i),
-                                                          {1., 0., 0., 1.}};
+                    (R+r*cosf(6.*MIN_THETA_ANGLE*(float)j))*sinf(MIN_PHI_ANGLE*(float)i),
+                    r*sinf(6.*MIN_THETA_ANGLE*(float)j)},
+                    calculateNormalToTorus(0.5, 0.8, 6.*MIN_THETA_ANGLE*(float)j, MIN_PHI_ANGLE*(float)i),
+                    {1., 0., 0., 1.}};
                 texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 0] = {MIN_PHI_ANGLE*(float)i/FULL_ANGLE, (float)6.*MIN_THETA_ANGLE*(float)j/FULL_ANGLE};
                 
                 vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 1] = {{(R+r*cosf(6.*MIN_THETA_ANGLE*((float)j+1.)))*cosf(MIN_PHI_ANGLE*(float)i),
-                                                              (R+r*cosf(6.*MIN_THETA_ANGLE*((float)j+1.)))*sinf(MIN_PHI_ANGLE*(float)i),
-                                                              r*sinf(6.*MIN_THETA_ANGLE*((float)j+1.))},
-                                                              calculateNormalToTorus(0.5, 0.8, 6.*MIN_THETA_ANGLE*((float)j+1.), MIN_PHI_ANGLE*(float)i),
-                                                              {1., 0., 0., 1.}};
+                    (R+r*cosf(6.*MIN_THETA_ANGLE*((float)j+1.)))*sinf(MIN_PHI_ANGLE*(float)i),
+                    r*sinf(6.*MIN_THETA_ANGLE*((float)j+1.))},
+                    calculateNormalToTorus(0.5, 0.8, 6.*MIN_THETA_ANGLE*((float)j+1.), MIN_PHI_ANGLE*(float)i),
+                    {1., 0., 0., 1.}};
                 texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 1] = {MIN_PHI_ANGLE*(float)i/FULL_ANGLE, (float)6.*MIN_THETA_ANGLE*(float)(j+1)/FULL_ANGLE};
                 
                 vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 2] = {{(R+r*cosf(6.*MIN_THETA_ANGLE*(float)j))*cosf(MIN_PHI_ANGLE*((float)i+1.)),
-                                                          (R+r*cosf(6.*MIN_THETA_ANGLE*(float)j))*sinf(MIN_PHI_ANGLE*((float)i+1.)),
-                                                          r*sinf(6.*MIN_THETA_ANGLE*(float)j)},
-                                                          calculateNormalToTorus(0.5, 0.8, 6.*MIN_THETA_ANGLE*(float)j, MIN_PHI_ANGLE*((float)i+1.)),
-                                                          {1., 0., 0., 1.}};
+                    (R+r*cosf(6.*MIN_THETA_ANGLE*(float)j))*sinf(MIN_PHI_ANGLE*((float)i+1.)),
+                    r*sinf(6.*MIN_THETA_ANGLE*(float)j)},
+                    calculateNormalToTorus(0.5, 0.8, 6.*MIN_THETA_ANGLE*(float)j, MIN_PHI_ANGLE*((float)i+1.)),
+                    {1., 0., 0., 1.}};
                 texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 2] = {MIN_PHI_ANGLE*(float)(i+1)/FULL_ANGLE, (float)6.*MIN_THETA_ANGLE*(float)j/FULL_ANGLE};
                 
                 vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 3] = {{(R+r*cosf(6.*MIN_THETA_ANGLE*(float)j))*cosf(MIN_PHI_ANGLE*((float)i+1.)),
-                                                          (R+r*cosf(6.*MIN_THETA_ANGLE*(float)j))*sinf(MIN_PHI_ANGLE*((float)i+1.)),
-                                                          r*sinf(6.*MIN_THETA_ANGLE*(float)j)},
-                                                          calculateNormalToTorus(0.5, 0.8, 6.*MIN_THETA_ANGLE*(float)j, MIN_PHI_ANGLE*((float)i+1.)),
-                                                          {0., 1., 0., 1.}};
+                    (R+r*cosf(6.*MIN_THETA_ANGLE*(float)j))*sinf(MIN_PHI_ANGLE*((float)i+1.)),
+                    r*sinf(6.*MIN_THETA_ANGLE*(float)j)},
+                    calculateNormalToTorus(0.5, 0.8, 6.*MIN_THETA_ANGLE*(float)j, MIN_PHI_ANGLE*((float)i+1.)),
+                    {0., 1., 0., 1.}};
                 texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 3] = {MIN_PHI_ANGLE*(float)(i+1)/FULL_ANGLE, (float)6.*MIN_THETA_ANGLE*(float)j/FULL_ANGLE};
                 
                 vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 4] = {{(R+r*cosf(6.*MIN_THETA_ANGLE*((float)j+1.)))*cosf(MIN_PHI_ANGLE*(float)i),
-                                                              (R+r*cosf(6.*MIN_THETA_ANGLE*((float)j+1.)))*sinf(MIN_PHI_ANGLE*(float)i),
-                                                              r*sinf(6.*MIN_THETA_ANGLE*((float)j+1.))},
-                                                              calculateNormalToTorus(0.5, 0.8, 6.*MIN_THETA_ANGLE*((float)j+1.), MIN_PHI_ANGLE*(float)i),
-                                                              {0., 1., 0., 1.}};
+                    (R+r*cosf(6.*MIN_THETA_ANGLE*((float)j+1.)))*sinf(MIN_PHI_ANGLE*(float)i),
+                    r*sinf(6.*MIN_THETA_ANGLE*((float)j+1.))},
+                    calculateNormalToTorus(0.5, 0.8, 6.*MIN_THETA_ANGLE*((float)j+1.), MIN_PHI_ANGLE*(float)i),
+                    {0., 1., 0., 1.}};
                 texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 4] = {MIN_PHI_ANGLE*(float)i/FULL_ANGLE, (float)6.*MIN_THETA_ANGLE*(float)(j+1)/FULL_ANGLE};
                 
                 vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 5] = {{(R+r*cosf(6.*MIN_THETA_ANGLE*((float)j+1.)))*cosf(MIN_PHI_ANGLE*((float)i+1.)),
-                                                              (R+r*cosf(6.*MIN_THETA_ANGLE*((float)j+1.)))*sinf(MIN_PHI_ANGLE*((float)i+1.)),
-                                                              r*sinf(6.*MIN_THETA_ANGLE*((float)j+1.))},
-                                                              calculateNormalToTorus(0.5, 0.8, 6.*MIN_THETA_ANGLE*((float)j+1.), MIN_PHI_ANGLE*((float)i+1.)),
-                                                              {0., 1., 0., 1.}};
+                    (R+r*cosf(6.*MIN_THETA_ANGLE*((float)j+1.)))*sinf(MIN_PHI_ANGLE*((float)i+1.)),
+                    r*sinf(6.*MIN_THETA_ANGLE*((float)j+1.))},
+                    calculateNormalToTorus(0.5, 0.8, 6.*MIN_THETA_ANGLE*((float)j+1.), MIN_PHI_ANGLE*((float)i+1.)),
+                    {0., 1., 0., 1.}};
                 texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 5] = {MIN_PHI_ANGLE*(float)(i+1)/FULL_ANGLE, (float)6.*MIN_THETA_ANGLE*(float)(j+1)/FULL_ANGLE};
             }
         }
@@ -420,9 +421,67 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
         {
             vertices2[i] = {vertices[i].position, vertices[i].normals, {0.,0.,0.,1.}};
         }
-
+        
         self.vertexBufferTorusBlack = [self.device newBufferWithBytes:vertices2 length:sizeof(vertices2) options:MTLResourceStorageModeShared];
+        
+    }
+    //Human
+    {
+        Vertex verticesHuman[10000];
+        uint indexesHuman[10000];
+    
+        NSString *filePath = @"x.obj";
+        NSError *error;
+        NSString *objData = [NSString stringWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:&error];
 
+        if (error) {
+            NSLog(@"Failed to open the .obj file: %@", error.localizedDescription);
+        }
+
+
+        int vertex_count = 0;
+        int triangle_count = 0;
+
+        NSArray *lines = [objData componentsSeparatedByString:@"\n"];
+        for (NSString *line in lines) {
+            NSString *prefix;
+            NSScanner *scanner = [NSScanner scannerWithString:line];
+            [scanner scanUpToString:@" " intoString:&prefix];
+            
+            if ([prefix isEqualToString:@"v"]) {
+                // Parse vertex coordinates
+                if (vertex_count < 10000) {
+                    float x, y, z;
+                    [scanner scanFloat:&x];
+                    [scanner scanFloat:&y];
+                    [scanner scanFloat:&z];
+                    verticesHuman[vertex_count] = {{x/(float)20., y/(float)20., z/(float)20.}, {1., 0., 0.}, {1., 0., 0., 1.}};
+                    vertex_count++;
+                }
+            } else if ([prefix isEqualToString:@"f"]) {
+                // Parse face data (indexes)
+                if (triangle_count < 10000) {
+                    int v1, v2, v3;
+                    [scanner scanInt:&v1];
+                    [scanner scanInt:&v2];
+                    [scanner scanInt:&v3];
+                    indexesHuman[3*triangle_count] = v1;
+                    indexesHuman[3*triangle_count+1] = v2;
+                    indexesHuman[3*triangle_count+2]= v3;
+                    triangle_count++;
+                }
+            }
+        }
+        
+        for(int i=0; i<sizeof(verticesHuman)/sizeof(*verticesHuman); i++)
+        {
+            verticesHuman[i].position.z /= 20.;
+            verticesHuman[i].position.x /= 20.;
+            verticesHuman[i].position.y /= 20.;
+        }
+        
+        self.vertexBufferHuman = [self.device newBufferWithBytes:verticesHuman length:sizeof(verticesHuman) options:MTLResourceStorageModeShared];
+        self.indexBufferHuman = [self.device newBufferWithBytes:indexesHuman length:sizeof(indexesHuman) options:MTLResourceStorageModeShared];
     }
     
     [self.view addSubview:self.metalView];
@@ -548,41 +607,6 @@ static float factorScaleZ = 1.;
 
 - (void)drawInMTKView:(MTKView *)view
 {
-//    {
-//        NSError* error = nil;
-//        id<MTLLibrary> library = [self.device newDefaultLibrary];
-//        id<MTLFunction> vertexFunction = [library newFunctionWithName:@"vertex2D"];
-//        id<MTLFunction> fragmentFunction = [library newFunctionWithName:@"fragment2D"];
-//        _pipelineDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
-//        _pipelineDescriptor.fragmentFunction = fragmentFunction;
-//        _pipelineDescriptor.vertexFunction = vertexFunction;
-//        _pipelineDescriptor.colorAttachments[0].pixelFormat = self.metalView.colorPixelFormat;
-//
-//        self.pipelineState = [self.device newRenderPipelineStateWithDescriptor:_pipelineDescriptor error:&error];
-//
-//        id<MTLCommandBuffer> commandBuffer = [self.device newCommandQueue].commandBuffer;
-//        MTLRenderPassDescriptor* renderPassDescriptor = view.currentRenderPassDescriptor;
-//        renderPassDescriptor.colorAttachments[0].texture = [self loadTextureWithImageNamed:@"gossling"];
-//        renderPassDescriptor.colorAttachments[0].texture.usage = MTLTextureUsageRenderTarget;
-//        id<MTLRenderCommandEncoder> renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
-//        [renderEncoder setRenderPipelineState:self.pipelineState];
-//        Vertex ver[] = {
-//            {{-2, -2, 0}, {0., 0., 0.}, {0., 0., 0., 1.}},
-//            {{2, -2, 0}, {0., 0., 0.}, {0., 0., 0., 1.}},
-//            {{-2, 2, 0}, {0., 0., 0.}, {0., 0., 0., 1.}},
-//
-//            {{2, 2, 0}, {0., 0., 0.}, {0., 0., 0., 1.}},
-//            {{2, -2, 0}, {0., 0., 0.}, {0., 0., 0., 1.}},
-//            {{-2, 2, 0}, {0., 0., 0.}, {0., 0., 0., 1.}}
-//        };
-//        [renderEncoder setVertexBuffer:[self.device newBufferWithBytes:ver length:sizeof(ver) options:MTLResourceStorageModeShared] offset:0 atIndex:MainBuffer];
-//        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:2*3];
-//        [renderEncoder endEncoding];
-//        [commandBuffer presentDrawable:view.currentDrawable];
-//        [commandBuffer commit];
-//
-//    }
-    
     NSError* error = nil;
     id<MTLLibrary> library = [self.device newDefaultLibrary];
     id<MTLFunction> vertexFunction = [library newFunctionWithName:@"vertexMain"];
@@ -865,7 +889,20 @@ static float factorScaleZ = 1.;
             [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:60*90*2*3];
         }
     }
-    
+    if([[self.comboBox stringValue] isEqualToString:@"Human"])
+    {
+        useTexture = false;
+        [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
+        indexMode = true;
+        
+        [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
+        [renderEncoder setVertexBuffer:self.vertexBufferHuman offset:0 atIndex:MainBuffer];
+        [renderEncoder setVertexBuffer:self.indexBufferHuman offset:0 atIndex:NormalsIndexBuffer];
+        [renderEncoder setVertexBuffer:self.indexBufferHuman offset:0 atIndex:IndexesBuffer];
+        [renderEncoder setVertexBuffer:self.indexBufferHuman offset:0 atIndex:ColorIndexBuffer];
+//        [renderEncoder setVertexBuffer:self.indexBufferHuman offset:0 atIndex:TextureCoords]
+        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:282];
+    }
     
 //    library = [self.device newDefaultLibrary];
 //    vertexFunction = [library newFunctionWithName:@"vertex2D"];
