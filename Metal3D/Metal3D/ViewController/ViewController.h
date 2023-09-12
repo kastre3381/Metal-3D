@@ -7,6 +7,7 @@
 #import "IndexEnum.h"
 #import <string>
 #import <vector>
+#import <cmath>
 
 typedef struct
 {
@@ -93,10 +94,12 @@ typedef struct
 @property (nonatomic, strong) id<MTLBuffer> textureIndexBufferCube;
 @property (nonatomic, strong) id<MTLBuffer> textureIndexBufferSphere;
 @property (nonatomic, strong) id<MTLBuffer> textureIndexBufferTorus;
+@property (nonatomic, strong) id<MTLBuffer> textureIndexBufferPlane;
 @property (nonatomic, strong) id<MTLBuffer> indexBufferHuman;
 @property (nonatomic, strong) id<MTLSamplerState> sampler;
 @property (nonatomic, retain) id<MTLTexture> textureCube;
 @property (nonatomic, retain) id<MTLTexture> textureTorus;
+@property (nonatomic, retain) id<MTLTexture> texturePlane;
 @property (nonatomic, retain) id<MTLTexture> textureSphere;
 @property (weak) IBOutlet NSComboBox *comboCubeTexture;
 @property (nonatomic) std::chrono::time_point<std::chrono::system_clock> timeFromBeg;

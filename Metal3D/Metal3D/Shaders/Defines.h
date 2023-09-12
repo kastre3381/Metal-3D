@@ -8,6 +8,18 @@
 #ifndef Defines_h
 #define Defines_h
 
+struct VertexInDoublePass
+{
+    float2 position [[attribute(0)]];
+    float4 color [[attribute(1)]];
+};
+
+struct VertexOutDoublePass
+{
+    float4 position [[position]];
+    float4 color;
+};
+
 
 struct VertexIn
 {
@@ -48,7 +60,13 @@ typedef enum ShaderDefines
     UseTexture,
 } ShaderDefines;
 
+constant int START_DOUBLE_PASS = (int)ShaderDefines::UseTexture + 1;
 
+enum class DoublePassDefines
+{
+    START_DOUBLE_PASS,
+    MainBuffer,
+};
 
 struct DirectionalLight {
     float3 direction;

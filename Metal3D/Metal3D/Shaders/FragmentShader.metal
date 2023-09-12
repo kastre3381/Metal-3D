@@ -9,8 +9,13 @@
 using namespace metal;
 
 
+fragment float4 fragmentMainGradient(VertexOutDoublePass vertexOut [[stage_in]]) {
+    return vertexOut.color;
+}
 
-
+fragment float4 fragmentMainGrayscale(VertexOutDoublePass vertexOut [[stage_in]]) {
+    return vertexOut.color * float4{0.2126, 0.7126, 0.0722, 1.};
+}
 
 
 
@@ -72,10 +77,4 @@ fragment float4 fragmentMain(VertexOut current [[stage_in]],
         return float4(finalColor * color.rgb, 1.0);
     }
     return color;
-}
-
-fragment float4 fragment2D(VertexOut current [[stage_in]])
-{
-    
-    return {1.,0.,0.,1.};
 }

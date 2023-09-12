@@ -8,15 +8,12 @@
 #include <metal_stdlib>
 using namespace metal;
 
-vertex VertexOut vertex2D(const device VertexIn* vertexArray [[buffer(MainBuffer)]],
-                          unsigned int vertexID [[vertex_id]])
+vertex VertexOutDoublePass vertexMainDoublePass(const device VertexInDoublePass* vertex_array [[buffer((int)DoublePassDefines::MainBuffer)]], unsigned int vid [[vertex_id]])
 {
-    VertexOut ver;
-    ver.position = float4(vertexArray[vertexID].position, 1.);
-    ver.normals = vertexArray[vertexID].normals;
-    ver.color = vertexArray[vertexID].color;
-    ver.texCoors = vertexArray[vertexID].position.xy;
-    return ver;
+    VertexOutDoublePass out;
+    out.position = float4(vertex_array[vid].position, 1.0);
+    out.color = vertex_array[vid].color;
+    return out;
 }
 
 vertex VertexOut vertexMain(const device VertexIn* vertexArray [[buffer(MainBuffer)]],

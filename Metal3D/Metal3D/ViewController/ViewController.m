@@ -58,7 +58,8 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     [self.comboBox addItemWithObjectValue:@"Plane"];
     [self.comboBox addItemWithObjectValue:@"Cyllinder"];
     [self.comboBox addItemWithObjectValue:@"Torus"];
-    [self.comboBox addItemWithObjectValue:@"Human"];
+//    [self.comboBox addItemWithObjectValue:@"Human"];
+    [self.comboBox addItemWithObjectValue:@"Double render pass"];
     
     [self.comboCubeTexture setHidden:YES];
     [self.comboCubeTexture setStringValue:@"Minecraft"];
@@ -133,8 +134,8 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
         1, 1, 1, 1, 1, 1,
         3, 3, 3, 3, 3, 3,
         2, 2, 2, 2, 2, 2,
-        4, 4, 4, 4, 4, 4,
-        5, 5, 5, 5, 5, 5
+        5, 5, 5, 5, 5, 5,
+        4, 4, 4, 4, 4, 4
     };
     
     vector_float2 textureCoords[] = {
@@ -294,6 +295,12 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
             {{ 0., 1., 1.}, {1., 0., 0.}, {1., 1., 0., 1.}}
         };
         
+        vector_float2 texCoords[] = {
+            {0., 0.}, {0., 1.,}, {1., 1.},
+            {0., 0.}, {1., 0.}, {1., 1.}
+        };
+        
+        self.textureIndexBufferPlane = [self.device newBufferWithBytes:texCoords length:sizeof(texCoords) options:MTLResourceStorageModeShared];
         self.vertexBufferPlane = [self.device newBufferWithBytes:vertices length:sizeof(vertices) options:MTLResourceStorageModeShared];
         
         Vertex vertices2[11*6];
@@ -373,42 +380,42 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
                     r*sinf(6.*MIN_THETA_ANGLE*(float)j)},
                     calculateNormalToTorus(0.5, 0.8, 6.*MIN_THETA_ANGLE*(float)j, MIN_PHI_ANGLE*(float)i),
                     {1., 0., 0., 1.}};
-                texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 0] = {MIN_PHI_ANGLE*(float)i/FULL_ANGLE, (float)6.*MIN_THETA_ANGLE*(float)j/FULL_ANGLE};
+                texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 0] = {MIN_PHI_ANGLE*(float)i/FULL_ANGLE, (float)fmod((float)6.*MIN_THETA_ANGLE*(float)j/FULL_ANGLE+M_PI/4., 1.)};
                 
                 vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 1] = {{(R+r*cosf(6.*MIN_THETA_ANGLE*((float)j+1.)))*cosf(MIN_PHI_ANGLE*(float)i),
                     (R+r*cosf(6.*MIN_THETA_ANGLE*((float)j+1.)))*sinf(MIN_PHI_ANGLE*(float)i),
                     r*sinf(6.*MIN_THETA_ANGLE*((float)j+1.))},
                     calculateNormalToTorus(0.5, 0.8, 6.*MIN_THETA_ANGLE*((float)j+1.), MIN_PHI_ANGLE*(float)i),
                     {1., 0., 0., 1.}};
-                texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 1] = {MIN_PHI_ANGLE*(float)i/FULL_ANGLE, (float)6.*MIN_THETA_ANGLE*(float)(j+1)/FULL_ANGLE};
+                texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 1] = {MIN_PHI_ANGLE*(float)i/FULL_ANGLE, (float)fmod((float)6.*MIN_THETA_ANGLE*(float)(j+1)/FULL_ANGLE+M_PI/4., 1.)};
                 
                 vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 2] = {{(R+r*cosf(6.*MIN_THETA_ANGLE*(float)j))*cosf(MIN_PHI_ANGLE*((float)i+1.)),
                     (R+r*cosf(6.*MIN_THETA_ANGLE*(float)j))*sinf(MIN_PHI_ANGLE*((float)i+1.)),
                     r*sinf(6.*MIN_THETA_ANGLE*(float)j)},
                     calculateNormalToTorus(0.5, 0.8, 6.*MIN_THETA_ANGLE*(float)j, MIN_PHI_ANGLE*((float)i+1.)),
                     {1., 0., 0., 1.}};
-                texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 2] = {MIN_PHI_ANGLE*(float)(i+1)/FULL_ANGLE, (float)6.*MIN_THETA_ANGLE*(float)j/FULL_ANGLE};
+                texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 2] = {MIN_PHI_ANGLE*(float)(i+1)/FULL_ANGLE, (float)fmod((float)6.*MIN_THETA_ANGLE*(float)j/FULL_ANGLE+M_PI/4., 1.)};
                 
                 vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 3] = {{(R+r*cosf(6.*MIN_THETA_ANGLE*(float)j))*cosf(MIN_PHI_ANGLE*((float)i+1.)),
                     (R+r*cosf(6.*MIN_THETA_ANGLE*(float)j))*sinf(MIN_PHI_ANGLE*((float)i+1.)),
                     r*sinf(6.*MIN_THETA_ANGLE*(float)j)},
                     calculateNormalToTorus(0.5, 0.8, 6.*MIN_THETA_ANGLE*(float)j, MIN_PHI_ANGLE*((float)i+1.)),
                     {0., 1., 0., 1.}};
-                texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 3] = {MIN_PHI_ANGLE*(float)(i+1)/FULL_ANGLE, (float)6.*MIN_THETA_ANGLE*(float)j/FULL_ANGLE};
+                texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 3] = {MIN_PHI_ANGLE*(float)(i+1)/FULL_ANGLE, (float)fmod((float)6.*MIN_THETA_ANGLE*(float)j/FULL_ANGLE+M_PI/4., 1.)};
                 
                 vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 4] = {{(R+r*cosf(6.*MIN_THETA_ANGLE*((float)j+1.)))*cosf(MIN_PHI_ANGLE*(float)i),
                     (R+r*cosf(6.*MIN_THETA_ANGLE*((float)j+1.)))*sinf(MIN_PHI_ANGLE*(float)i),
                     r*sinf(6.*MIN_THETA_ANGLE*((float)j+1.))},
                     calculateNormalToTorus(0.5, 0.8, 6.*MIN_THETA_ANGLE*((float)j+1.), MIN_PHI_ANGLE*(float)i),
                     {0., 1., 0., 1.}};
-                texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 4] = {MIN_PHI_ANGLE*(float)i/FULL_ANGLE, (float)6.*MIN_THETA_ANGLE*(float)(j+1)/FULL_ANGLE};
+                texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 4] = {MIN_PHI_ANGLE*(float)i/FULL_ANGLE, (float)fmod((float)6.*MIN_THETA_ANGLE*(float)(j+1)/FULL_ANGLE+M_PI/4., 1.)};
                 
                 vertices[i*(int)MAX_VAL_CIRCLE + 6*j + 5] = {{(R+r*cosf(6.*MIN_THETA_ANGLE*((float)j+1.)))*cosf(MIN_PHI_ANGLE*((float)i+1.)),
                     (R+r*cosf(6.*MIN_THETA_ANGLE*((float)j+1.)))*sinf(MIN_PHI_ANGLE*((float)i+1.)),
                     r*sinf(6.*MIN_THETA_ANGLE*((float)j+1.))},
                     calculateNormalToTorus(0.5, 0.8, 6.*MIN_THETA_ANGLE*((float)j+1.), MIN_PHI_ANGLE*((float)i+1.)),
                     {0., 1., 0., 1.}};
-                texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 5] = {MIN_PHI_ANGLE*(float)(i+1)/FULL_ANGLE, (float)6.*MIN_THETA_ANGLE*(float)(j+1)/FULL_ANGLE};
+                texCoords[i*(int)MAX_VAL_CIRCLE + 6*j + 5] = {MIN_PHI_ANGLE*(float)(i+1)/FULL_ANGLE, (float)fmod((float)6.*MIN_THETA_ANGLE*(float)(j+1)/FULL_ANGLE+M_PI/4., 1.)};
             }
         }
         
@@ -487,7 +494,8 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     [self.view addSubview:self.metalView];
     self.textureCube = [self loadTextureWithImageNamed:@"minecraft_dirt"];
     self.textureSphere = [self loadTextureWithImageNamed:@"ball2"];
-    self.textureTorus = [self loadTextureWithImageNamed:@"torus"];
+    self.textureTorus = [self loadTextureWithImageNamed:@"grass"];
+    self.texturePlane = [self loadTextureWithImageNamed:@"gossling"];
 }
 
 
@@ -586,6 +594,10 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     [self.testureOnOff setState:NO];
 }
 
+- (IBAction)hideTextureOnOff:(id)sender {
+    if([[self.comboBox stringValue] isEqualToString:@"Cyllinder"]) [self.testureOnOff setHidden:YES];
+    else [self.testureOnOff setHidden:NO];
+}
 
 - (IBAction)animationActivated:(id)sender {
    
@@ -805,7 +817,7 @@ static float factorScaleZ = 1.;
             [renderEncoder setVertexBuffer:self.indexBufferBlack offset:0 atIndex:IndexesBuffer];
             [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:11*36];
         }
-        
+        [renderEncoder endEncoding];
     }
     else if([[self.comboBox stringValue] isEqualToString:@"Sphere"])
     {
@@ -827,20 +839,18 @@ static float factorScaleZ = 1.;
             [renderEncoder setVertexBuffer:self.vertexBufferSphereBlack offset:0 atIndex:MainBuffer];
             [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:42*120*2*3];
         }
+        [renderEncoder endEncoding];
     }
     else if([[self.comboBox stringValue] isEqualToString:@"Plane"])
     {
         indexMode = false;
         [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
         
-        useTexture = false;
+        useTexture = [self.testureOnOff state];
         [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
-        
-        vector_float2 texCoords[] = {
-            {0., 0.}, {0., 1.}, {1., 1.},
-            {0., 0.}, {1., 0.}, {1., 1.}
-        };
-        [renderEncoder setVertexBuffer:[self.device newBufferWithBytes:texCoords length:sizeof(texCoords) options:MTLResourceStorageModeShared] offset:0 atIndex:TextureCoords];
+
+        [renderEncoder setFragmentTexture:self.texturePlane atIndex:FragmentTexture];
+        [renderEncoder setVertexBuffer:self.textureIndexBufferPlane offset:0 atIndex:TextureCoords];
         [renderEncoder setVertexBuffer:self.vertexBufferPlane offset:0 atIndex:MainBuffer];
         [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
         
@@ -850,6 +860,7 @@ static float factorScaleZ = 1.;
             [renderEncoder setVertexBuffer:self.vertexBufferPlaneBlack offset:0 atIndex:MainBuffer];
             [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:11*6];
         }
+        [renderEncoder endEncoding];
     }
     else if([[self.comboBox stringValue] isEqualToString:@"Cyllinder"])
     {
@@ -865,7 +876,7 @@ static float factorScaleZ = 1.;
             [renderEncoder setVertexBuffer:self.vertexBufferCyllinderBlack offset:0 atIndex:MainBuffer];
             [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:11*12*12];
         }
-        
+        [renderEncoder endEncoding];
     }
     else if([[self.comboBox stringValue] isEqualToString:@"Torus"])
     {
@@ -888,6 +899,7 @@ static float factorScaleZ = 1.;
             [renderEncoder setVertexBuffer:self.vertexBufferTorusBlack offset:0 atIndex:MainBuffer];
             [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:60*90*2*3];
         }
+        [renderEncoder endEncoding];
     }
     if([[self.comboBox stringValue] isEqualToString:@"Human"])
     {
@@ -902,39 +914,72 @@ static float factorScaleZ = 1.;
         [renderEncoder setVertexBuffer:self.indexBufferHuman offset:0 atIndex:ColorIndexBuffer];
 //        [renderEncoder setVertexBuffer:self.indexBufferHuman offset:0 atIndex:TextureCoords]
         [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:282];
+        [renderEncoder endEncoding];
     }
-    
-//    library = [self.device newDefaultLibrary];
-//    vertexFunction = [library newFunctionWithName:@"vertex2D"];
-//    fragmentFunction = [library newFunctionWithName:@"fragment2D"];
-//    _pipelineDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
-//    _pipelineDescriptor.fragmentFunction = fragmentFunction;
-//    _pipelineDescriptor.vertexFunction = vertexFunction;
-//    _pipelineDescriptor.colorAttachments[0].pixelFormat = self.metalView.colorPixelFormat;
-//    _pipelineDescriptor.depthAttachmentPixelFormat = self.metalView.depthStencilPixelFormat;
-//    self.pipelineState = [self.device newRenderPipelineStateWithDescriptor:_pipelineDescriptor error:&error];
-//    [renderEncoder setRenderPipelineState:self.pipelineState];
-//    [renderEncoder setDepthStencilState:depthState];
-//
-//    _texture = renderPassDescriptor.colorAttachments[0].texture;
-//    [renderEncoder setFragmentTexture:self.texture atIndex:FragmentTexture];
-//    Vertex vertices[] = {
-//        {{-1., -1., 0.}, {0.,0.,0.}, {0., 0.,0., 0.}},
-//        {{-1., 1., 0.}, {0.,0.,0.}, {0., 0.,0., 0.}},
-//        {{ 1., 1., 1.}, {0.,0.,0.}, {0., 0.,0., 0.}},
-//
-//        {{-1., -1., 0.}, {0.,0.,0.}, {0., 0.,0., 0.}},
-//        {{ 1., -1., 0.}, {0.,0.,0.}, {0., 0.,0., 0.}},
-//        {{ 1., 1., 0.}, {0.,0.,0.}, {0., 0.,0., 0.}}
-//    };
-//    self.vertexBuffer = [self.device newBufferWithBytes:vertices length:sizeof(vertices) options:MTLResourceStorageModeShared];
-//    [renderEncoder setVertexBuffer:self.vertexBuffer offset:0 atIndex:MainBuffer];
-//    [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
-    
+    if([[self.comboBox stringValue] isEqualToString:@"Double render pass"])
+    {
+        NSString *vertexShaderSource = @"vertexMainDoublePass";
+        NSString *gradientFragmentShaderSource = @"fragmentMainGradient";
+        NSString *grayscaleFragmentShaderSource = @"fragmentMainGrayscale";
+        
+        id<MTLFunction> vertexFunctionDoublePass = [library newFunctionWithName:vertexShaderSource];
+        id<MTLFunction> gradientFragmentFunction = [library newFunctionWithName:gradientFragmentShaderSource];
+        id<MTLFunction> grayscaleFragmentFunction = [library newFunctionWithName:grayscaleFragmentShaderSource];
+        
+        MTLTextureDescriptor *gradientTextureDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:self.metalView.colorPixelFormat
+                                                                                                            width:722
+                                                                                                           height:746
+                                                                                                        mipmapped:NO];
+        gradientTextureDescriptor.usage = MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite;
+        id<MTLTexture> gradientTexture = [self.device newTextureWithDescriptor:gradientTextureDescriptor];
+        
+        MTLRenderPassDescriptor *gradientRenderPassDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
+        gradientRenderPassDescriptor.colorAttachments[0].texture = gradientTexture;
+        gradientRenderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
+        gradientRenderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 1.0);
+        gradientRenderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
+        
+        MTLRenderPipelineDescriptor *gradientPipelineDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
+        gradientPipelineDescriptor.vertexFunction = vertexFunctionDoublePass;
+        gradientPipelineDescriptor.fragmentFunction = gradientFragmentFunction;
+        gradientPipelineDescriptor.colorAttachments[0].pixelFormat = self.metalView.colorPixelFormat;
+        id<MTLRenderPipelineState> gradientPipelineState = [self.device newRenderPipelineStateWithDescriptor:gradientPipelineDescriptor error:&error];
 
-    [renderEncoder endEncoding];
+        struct VertexDoublePass
+        {
+            vector_float2 pos;
+            vector_float4 color;
+        };
+        
+        VertexDoublePass ver[] = {
+            {{1., 1.}, {1., 0., 0., 1.}},
+            {{-1., 1.}, {0., 1., 0., 1.}},
+            {{-1., -1.}, {0., 0., 1., 1.}},
+            {{1., 1.}, {1., 1., 0., 1.}},
+            {{1., -1.}, {0., 1., 1., 1.}},
+            {{1., 1.}, {1., 0., 1., 1.}}
+        };
+        [renderEncoder endEncoding];
+        id<MTLRenderCommandEncoder> renderEncoder2 = [commandBuffer renderCommandEncoderWithDescriptor:gradientRenderPassDescriptor];
+        [renderEncoder2 setRenderPipelineState:gradientPipelineState];
+        [renderEncoder2 setVertexBuffer:[self.device newBufferWithBytes:ver length:sizeof(ver) options:MTLResourceStorageModeShared] offset:0 atIndex:(int)DoublePassDefines::MainBuffer];
+        [renderEncoder2 drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
+        [renderEncoder2 endEncoding];
+//        MTLTextureDescriptor *textureDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:self.metalView.colorPixelFormat
+//                                                                                                  width:722
+//                                                                                                 height:746
+//                                                                                              mipmapped:NO];
+//        textureDescriptor.usage = MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite;
+//        id<MTLTexture> renderTargetTexture = [self.device newTextureWithDescriptor:textureDescriptor];
+//        renderPassDescriptor.colorAttachments[0].texture = renderTargetTexture;
+//        renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
+//        renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 1.0);
+//        renderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
+    }
+ 
     [commandBuffer presentDrawable:view.currentDrawable];
     [commandBuffer commit];
+    [commandBuffer waitUntilCompleted];
 }
 
 - (void)mtkView:(MTKView *)view drawableSizeWillChange:(CGSize)size
@@ -969,7 +1014,7 @@ static float factorScaleZ = 1.;
 -(void)mouseDragged:(NSEvent *)event
 {
     NSLog(@"|x drag");
-    if(false)
+    if(_isRotate)
     {
         float tx =  [event locationInWindow].x, ty =  [event locationInWindow].y;
         if(tx>=44. && tx<=44.+766. && ty>=20. && ty<=20.+766.)

@@ -31,6 +31,16 @@ typedef enum ShaderDefines
     UseTexture,
 } ShaderDefines;
 
+
+int START_DOUBLE_PASS = (int)ShaderDefines::UseTexture + 1;
+
+enum class DoublePassDefines
+{
+    START_DOUBLE_PASS,
+    MainBuffer,
+};
+
+
 struct PointLight {
     vector_float3 position;
     vector_float3 color;
