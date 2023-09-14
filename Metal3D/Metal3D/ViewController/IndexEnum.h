@@ -11,6 +11,7 @@
 typedef enum ShaderDefines
 {
     MainBuffer,
+    TanAndBitan,
     IndexesBuffer,
     ColorIndexBuffer,
     NormalsIndexBuffer,
@@ -29,12 +30,17 @@ typedef enum ShaderDefines
     DrawWithIndexes,
     TextureCoords,
     UseTexture,
+    Time,
+    NormalMap,
+    RoughnessMap,
+    DisplacementMap,
+    aoMap,
 } ShaderDefines;
 
 
 enum class DoublePassDefines
 {
-    MainBuffer = 20,
+    MainBuffer = 28,
     FragmentTexture,
 };
 

@@ -18,6 +18,12 @@ typedef struct
 
 typedef struct
 {
+    vector_float3 tan;
+    vector_float3 bitan;
+} TgAndBitg;
+
+typedef struct
+{
     vector_float3 firstRow;
     vector_float3 secondRow;
     vector_float3 thirdRow;
@@ -75,6 +81,8 @@ typedef struct
 @property (nonatomic, strong) MTLRenderPipelineDescriptor* pipelineDescriptor;
 @property (nonatomic, strong) id<MTLCommandQueue> commandQueue;
 @property (nonatomic, strong) id<MTLDevice> device;
+@property (nonatomic, strong) id<MTLBuffer> vertexBufferLines;
+@property (nonatomic, strong) id<MTLBuffer> tangentAnndBitangentBufferCube;
 @property (nonatomic, strong) id<MTLBuffer> vertexBufferCube;
 @property (nonatomic, strong) id<MTLBuffer> vertexBufferCubeBlack;
 @property (nonatomic, strong) id<MTLBuffer> vertexBufferSphere;
@@ -98,9 +106,14 @@ typedef struct
 @property (nonatomic, strong) id<MTLBuffer> indexBufferHuman;
 @property (nonatomic, strong) id<MTLSamplerState> sampler;
 @property (nonatomic, retain) id<MTLTexture> textureCube;
+@property (nonatomic, retain) id<MTLTexture> textureCubeDisplacement;
+@property (nonatomic, retain) id<MTLTexture> textureCubeRough;
+@property (nonatomic, retain) id<MTLTexture> textureCubeNormal;
+@property (nonatomic, retain) id<MTLTexture> textureCubeAO;
 @property (nonatomic, retain) id<MTLTexture> textureTorus;
 @property (nonatomic, retain) id<MTLTexture> texturePlane;
 @property (nonatomic, retain) id<MTLTexture> textureSphere;
+@property (nonatomic, retain) id<MTLTexture> normalsTexture;
 @property (weak) IBOutlet NSComboBox *comboCubeTexture;
 @property (nonatomic) std::chrono::time_point<std::chrono::system_clock> timeFromBeg;
 @property (weak) IBOutlet NSSwitch *annimationOnOff;
@@ -110,10 +123,14 @@ typedef struct
 
 @property (nonatomic) BOOL isTranslate;
 @property (nonatomic) BOOL isRotate;
+@property (nonatomic) bool isNormals;
+@property (nonatomic) std::chrono::time_point<std::chrono::system_clock> time;
 @property (nonatomic) NSPoint lastMousePosition;
 @property (weak) IBOutlet NSComboBox *comboBox;
 @property (weak) IBOutlet NSComboBox *comboboxLightOnOff;
 @property (weak) IBOutlet NSComboBox *comboboxLightType;
+@property (weak) IBOutlet NSComboBox *comboBoxNormals;
+
 @property (weak) IBOutlet NSSwitch *verticesOnOff;
 @property (weak) IBOutlet NSSwitch *testureOnOff;
 @property (weak) IBOutlet NSProgressIndicator *progressCircle;

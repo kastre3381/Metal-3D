@@ -1,4 +1,11 @@
 #import "ViewController.h"
+#include <algorithm>
+
+float smoothstep(float edge0, float edge1, float x) {
+    x = std::clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
+    return x * x * (3 - 2 * x);
+}
+
 
 @implementation ViewController
 
@@ -46,11 +53,11 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     self.device = MTLCreateSystemDefaultDevice();
     self.metalView = [[MTKView alloc] initWithFrame:CGRectMake(44, 20, 766, 766) device:self.device];
     self.metalView.delegate = self;
-    self.metalView.clearColor = MTLClearColorMake(1., 1., 1., 1.);
+    self.metalView.clearColor = MTLClearColorMake(0., 0., 0., 1.);
     _metalView.clearDepth = 1.;
     _metalView.depthStencilPixelFormat = MTLPixelFormatDepth16Unorm;
     
-    
+    [self.metalView becomeFirstResponder];
     
     [self.comboBox setStringValue:@"Cube"];
     [self.comboBox addItemWithObjectValue:@"Cube"];
@@ -58,7 +65,7 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     [self.comboBox addItemWithObjectValue:@"Plane"];
     [self.comboBox addItemWithObjectValue:@"Cyllinder"];
     [self.comboBox addItemWithObjectValue:@"Torus"];
-//    [self.comboBox addItemWithObjectValue:@"Human"];
+    [self.comboBox addItemWithObjectValue:@"Shadow"];
     [self.comboBox addItemWithObjectValue:@"Double render pass"];
     
     [self.comboCubeTexture setHidden:YES];
@@ -78,7 +85,15 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     [self.comboboxLightType addItemWithObjectValue:@"Directional"];
     [self.comboboxLightType setHidden:YES];
     
+    [self.comboBoxNormals setStringValue:@"None"];
+    [self.comboBoxNormals addItemWithObjectValue:@"None"];
+    [self.comboBoxNormals addItemWithObjectValue:@"1"];
+    [self.comboBoxNormals addItemWithObjectValue:@"2"];
+    [self.comboBoxNormals setHidden:YES];
+    
     [self.progressCircle setHidden:YES];
+    
+    self.time = std::chrono::system_clock::now();
     
     [self.customView setHidden:YES];
     [self.pointPosX setFloatValue:0.0];
@@ -110,6 +125,20 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     [self.dirSCB setFloatValue:256.];
     [self.dirInt setFloatValue:32.];
     
+    
+    Vertex lines[] =
+    {
+        {{-1000., 0., 0.}, {0., 0., 0.}, {0.,0.,1.,1.}},
+        {{1000., 0., 0.}, {0., 0., 0.}, {0.,0.,1.,1.}},
+        
+        {{0., -1000., 0.}, {0., 0., 0.}, {0.,0.,1.,1.}},
+        {{0., 1000., 0.}, {0., 0., 0.}, {0.,0.,1.,1.}},
+        
+        {{0., 0., -1000.}, {0., 0., 0.}, {0.,0.,1.,1.}},
+        {{0., 0., 1000.}, {0., 0., 0.}, {0.,0.,1.,1.}},
+    };
+    
+    self.vertexBufferLines = [self.device newBufferWithBytes:lines length:sizeof(lines) options:MTLResourceStorageModeShared];
     
     uint indexes[] = {
         0, 1, 2, 0, 2, 3,
@@ -162,7 +191,6 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     self.colorIndexBuffer = [self.device newBufferWithBytes:colorIndexes length:sizeof(colorIndexes) options:MTLResourceStorageModeShared];
     self.normalsIndexBuffer = [self.device newBufferWithBytes:normalsIndexes length:sizeof(normalsIndexes) options:MTLResourceStorageModeShared];
     self.textureIndexBufferCube = [self.device newBufferWithBytes:textureCoords length:sizeof(textureCoords) options:MTLResourceStorageModeShared];
-    
     //cube
     {
         Vertex vertices[] =
@@ -492,10 +520,15 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     }
     
     [self.view addSubview:self.metalView];
-    self.textureCube = [self loadTextureWithImageNamed:@"minecraft_dirt"];
-    self.textureSphere = [self loadTextureWithImageNamed:@"ball2"];
+    self.textureCube = [self loadTextureWithImageNamed:@"diffuse"];
+    self.textureCubeDisplacement = [self loadTextureWithImageNamed:@"displacement"];
+    self.textureCubeRough = [self loadTextureWithImageNamed:@"rough"];
+    self.textureCubeNormal = [self loadTextureWithImageNamed:@"normal"];
+    self.textureCubeAO = [self loadTextureWithImageNamed:@"ao"];
+    self.textureSphere = [self loadTextureWithImageNamed:@"ball"];
     self.textureTorus = [self loadTextureWithImageNamed:@"grass"];
     self.texturePlane = [self loadTextureWithImageNamed:@"gossling"];
+    self.normalsTexture = [self loadTextureWithImageNamed:@"normalsR"];
 }
 
 
@@ -505,8 +538,17 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
 }
 
 - (IBAction)showLightOptionBox:(id)sender {
-    if([[self.comboboxLightOnOff stringValue] isEqualToString:@"On"]) [self.comboboxLightType setHidden:NO];
-    else [self.comboboxLightType setHidden:YES];
+    if([[self.comboboxLightOnOff stringValue] isEqualToString:@"On"])
+    {
+        [self.comboboxLightType setHidden:NO];
+        [self.comboBoxNormals setHidden:NO];
+    }
+    else
+    {
+        [self.comboboxLightType setHidden:YES];
+        [self.comboBoxNormals setHidden:YES];
+    }
+    
 }
 
 - (IBAction)updateTexture:(id)sender {
@@ -602,6 +644,31 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
 - (IBAction)animationActivated:(id)sender {
    
 }
+- (IBAction)normalsChooser:(id)sender {
+     if([[self.comboBoxNormals stringValue] isEqualToString:@"None"])
+         self.isNormals = false;
+     else
+     {
+         self.isNormals = true;
+         
+         if([[self.comboBox stringValue] isEqualToString:@"Cube"])
+         {
+             if([[self.comboBoxNormals stringValue] isEqualToString:@"1"])
+                 self.normalsTexture = [self loadTextureWithImageNamed:@"normalsR"];
+             else
+                 self.normalsTexture = [self loadTextureWithImageNamed:@"normalsR2"];
+         }
+         if([[self.comboBox stringValue] isEqualToString:@"Sphere"])
+         {
+             if([[self.comboBoxNormals stringValue] isEqualToString:@"1"])
+                 self.normalsTexture = [self loadTextureWithImageNamed:@"normalsS"];
+             else
+                 self.normalsTexture = [self loadTextureWithImageNamed:@"normalsS2"];
+         }
+
+     }
+    
+}
 
 - (IBAction)textureActivated:(id)sender {
     if([self.testureOnOff state] == YES && [[self.comboBox stringValue] isEqualToString:@"Cube"]) [self.comboCubeTexture setHidden:NO];
@@ -616,6 +683,7 @@ static float factorZ = 1.;
 static float factorScaleX = 1.;
 static float factorScaleY = -1.;
 static float factorScaleZ = 1.;
+
 
 - (void)drawInMTKView:(MTKView *)view
 {
@@ -641,9 +709,9 @@ static float factorScaleZ = 1.;
            if([self.m_RotationYSlider floatValue] <= 0.) [self.m_RotationYSlider setFloatValue:360.];
            if([self.m_RotationZSlider floatValue] >= 360.) [self.m_RotationZSlider setFloatValue:0.];
            
-           [self.m_RotationXSlider setFloatValue:[self.m_RotationXSlider floatValue] + 0.5*animSpeed/10.];
-           [self.m_RotationYSlider setFloatValue:[self.m_RotationYSlider floatValue] - 1.0*animSpeed/10.];
-           [self.m_RotationZSlider setFloatValue:[self.m_RotationZSlider floatValue] + 0.7*animSpeed/10.];
+           [self.m_RotationXSlider setFloatValue:[self.m_RotationXSlider floatValue] + smoothstep(0., 5., 0.5/10.*animSpeed)];
+           [self.m_RotationYSlider setFloatValue:[self.m_RotationYSlider floatValue] - smoothstep(0., 10., 1.0/10.*animSpeed)];
+           [self.m_RotationZSlider setFloatValue:[self.m_RotationZSlider floatValue] + smoothstep(0., 7., 0.7/10.*animSpeed)];
        }
        
        if([self.animTransOnOff state] == YES)
@@ -652,9 +720,8 @@ static float factorScaleZ = 1.;
            if([self.m_TransYSlider floatValue] >= 18. || [self.m_TransYSlider floatValue] <= -18.) factorY *= -1;
            if([self.m_TransZSlider floatValue] >= 18. || [self.m_TransZSlider floatValue] <= -18.) factorZ *= -1;
            
-           [self.m_TransXSlider setFloatValue:[self.m_TransXSlider floatValue] + 0.5/20.*animSpeed*factorX];
-           [self.m_TransYSlider setFloatValue:[self.m_TransYSlider floatValue] + 1.0/20.*animSpeed*factorY];
-           //        [self.m_TransZSlider setFloatValue:[self.m_TransZSlider floatValue] + 0.7/20.*animSpeed*factorZ];
+           [self.m_TransXSlider setFloatValue:[self.m_TransXSlider floatValue] + 0.5/20.*animSpeed/10.*factorX];
+           [self.m_TransYSlider setFloatValue:[self.m_TransYSlider floatValue] + 1.0/20.*animSpeed/10.*factorY];
        }
        
        if([self.animScaleOnOff state] == YES)
@@ -663,23 +730,12 @@ static float factorScaleZ = 1.;
            if([self.m_ScaleYSlider floatValue] >= 200. || [self.m_ScaleYSlider floatValue] <= 50.) factorScaleY *= -1;
            if([self.m_ScaleZSlider floatValue] >= 200. || [self.m_ScaleZSlider floatValue] <= 50.) factorScaleZ *= -1;
            
-           [self.m_ScaleXSlider setFloatValue:[self.m_ScaleXSlider floatValue] + 0.5/20.*animSpeed*factorScaleX];
-           [self.m_ScaleYSlider setFloatValue:[self.m_ScaleYSlider floatValue] + 0.5/20.*animSpeed*factorScaleY];
-           //        [self.m_ScaleZSlider setFloatValue:[self.m_ScaleZSlider floatValue] + 0.5/20.*animSpeed*factorScaleZ];
+           [self.m_ScaleXSlider setFloatValue:[self.m_ScaleXSlider floatValue] + smoothstep(0., 5., 0.5/20.*animSpeed)*factorScaleX];
+           [self.m_ScaleYSlider setFloatValue:[self.m_ScaleYSlider floatValue] + smoothstep(0., 5., 0.5/20.*animSpeed)*factorScaleY];
        }
        
        
-       Vertex lines[] =
-       {
-           {{-1000., 0., 0.}, {0., 0., 0.}, {0.,0.,1.,1.}},
-           {{1000., 0., 0.}, {0., 0., 0.}, {0.,0.,1.,1.}},
-           
-           {{0., -1000., 0.}, {0., 0., 0.}, {0.,0.,1.,1.}},
-           {{0., 1000., 0.}, {0., 0., 0.}, {0.,0.,1.,1.}},
-           
-           {{0., 0., -1000.}, {0., 0., 0.}, {0.,0.,1.,1.}},
-           {{0., 0., 1000.}, {0., 0., 0.}, {0.,0.,1.,1.}},
-       };
+       
        
        float angles[3];
        angles[0] = 2.*M_PI/360.*[self.m_RotationXSlider floatValue];
@@ -718,8 +774,6 @@ static float factorScaleZ = 1.;
        
        id<MTLCommandBuffer> commandBuffer = [self.device newCommandQueue].commandBuffer;
        MTLRenderPassDescriptor* renderPassDescriptor = view.currentRenderPassDescriptor;
-       //    renderPassDescriptor.colorAttachments[0].texture = self.texture;
-       //    view.currentRenderPassDescriptor.depthAttachment.storeAction = MTLStoreActionStore;
        
        float dzielAll = 1., dzielPos = 256.;
        
@@ -760,8 +814,9 @@ static float factorScaleZ = 1.;
        [renderEncoder setVertexBuffer:self.textureIndexBufferCube offset:0 atIndex:TextureCoords];
        [renderEncoder setVertexBuffer:self.normalsIndexBuffer offset:0 atIndex:NormalsIndexBuffer];
        [renderEncoder setVertexBytes:&isPlot length:sizeof(bool)*2 atIndex:PlotOnOff];
-       [renderEncoder setVertexBuffer:[self.device newBufferWithBytes:lines length:sizeof(lines) options:MTLResourceStorageModeShared] offset:0 atIndex:MainBuffer];
-       
+       [renderEncoder setVertexBuffer:self.vertexBufferLines offset:0 atIndex:MainBuffer];
+
+        
        int lightType = 0;
        if([[self.comboboxLightOnOff stringValue] isEqualToString:@"Off"])
        {
@@ -786,30 +841,42 @@ static float factorScaleZ = 1.;
                [renderEncoder setFragmentBytes:&lightType length:sizeof(int) atIndex:FragmentLightType];
            }
        }
+        
+        float time = std::chrono::duration_cast<std::chrono::microseconds>(self.time-std::chrono::system_clock::now()).count();//.count()/600000.;
        [renderEncoder setFragmentBytes:&punctualLight length:sizeof(punctualLight) atIndex:PointLight];
        [renderEncoder setFragmentBytes:&directionalLight length:sizeof(directionalLight) atIndex:DirectionalLight];
        [renderEncoder setFragmentBytes:&material length:sizeof(material) atIndex:Material];
+       [renderEncoder setFragmentBytes:&time length:sizeof(float) atIndex:Time];
        [renderEncoder setFragmentTexture:self.textureCube atIndex:FragmentTexture];
-       
+       [renderEncoder setFragmentTexture:self.textureCubeNormal atIndex:NormalMap];
+        [renderEncoder setFragmentTexture:self.textureCubeAO atIndex:aoMap];
+        [renderEncoder setFragmentTexture:self.textureCubeRough atIndex:RoughnessMap];
+        [renderEncoder setFragmentTexture:self.textureCubeDisplacement atIndex:DisplacementMap];
+        
+        
        bool indexMode = false;
        [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
        
-       bool useTexture = false;
+        bool useTexture[2] = {false, self.isNormals};
        [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
-       
-       [renderEncoder drawPrimitives:MTLPrimitiveTypeLine vertexStart:0 vertexCount:6];
+      
+#pragma mark RENDER 3D
+       //[renderEncoder drawPrimitives:MTLPrimitiveTypeLine vertexStart:0 vertexCount:6];
        
        isPlot[0] = false;
        [renderEncoder setVertexBytes:&isPlot length:sizeof(bool)*2 atIndex:PlotOnOff];
        
        if([[self.comboBox stringValue] isEqualToString:@"Cube"])
        {
-           useTexture = [self.testureOnOff state];
-           [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
+           useTexture[0] = [self.testureOnOff state];
+           useTexture[1] = self.isNormals;
+           [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool)*2 atIndex:UseTexture];
            indexMode = true;
            [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
            [renderEncoder setVertexBuffer:self.vertexBufferCube offset:0 atIndex:MainBuffer];
            [renderEncoder setVertexBuffer:self.normalsIndexBuffer offset:0 atIndex:NormalsIndexBuffer];
+#pragma mark to  delete
+//           [renderEncoder setTriangleFillMode:MTLTriangleFillModeLines];
            [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:36];
            
            if([self.verticesOnOff state] == YES)
@@ -822,13 +889,15 @@ static float factorScaleZ = 1.;
        }
        else if([[self.comboBox stringValue] isEqualToString:@"Sphere"])
        {
-           useTexture = [self.testureOnOff state];
-           [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
+           useTexture[0] = [self.testureOnOff state];
+           useTexture[1] = self.isNormals;
+           [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool)*2 atIndex:UseTexture];
            
            indexMode = false;
            [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
            [renderEncoder setVertexBuffer:self.vertexBufferSphere offset:0 atIndex:MainBuffer];
            [renderEncoder setFragmentTexture:self.textureSphere atIndex:FragmentTexture];
+           [renderEncoder setFragmentTexture:self.normalsTexture atIndex:NormalMap];
            [renderEncoder setVertexBuffer:self.textureIndexBufferSphere offset:0 atIndex:TextureCoords];
            [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:42*120*2*3];
            
@@ -846,8 +915,9 @@ static float factorScaleZ = 1.;
            indexMode = false;
            [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
            
-           useTexture = [self.testureOnOff state];
-           [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
+           useTexture[0] = [self.testureOnOff state];
+           useTexture[1] = self.isNormals;
+           [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool)*2 atIndex:UseTexture];
            
            [renderEncoder setFragmentTexture:self.texturePlane atIndex:FragmentTexture];
            [renderEncoder setVertexBuffer:self.textureIndexBufferPlane offset:0 atIndex:TextureCoords];
@@ -863,8 +933,9 @@ static float factorScaleZ = 1.;
        }
        else if([[self.comboBox stringValue] isEqualToString:@"Cyllinder"])
        {
-           useTexture = false;
-           [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
+           useTexture[0] = false;
+           useTexture[1] = self.isNormals;
+           [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool)*2 atIndex:UseTexture];
            indexMode = false;
            [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
            [renderEncoder setVertexBuffer:self.vertexBufferCyllinder offset:0 atIndex:MainBuffer];
@@ -878,8 +949,9 @@ static float factorScaleZ = 1.;
        }
        else if([[self.comboBox stringValue] isEqualToString:@"Torus"])
        {
-           useTexture = [self.testureOnOff state];
-           [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
+           useTexture[0] = [self.testureOnOff state];
+           useTexture[1] = self.isNormals;
+           [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool)*2 atIndex:UseTexture];
            indexMode = false;
            [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
            isPlot[1] = true;
@@ -900,8 +972,9 @@ static float factorScaleZ = 1.;
        }
        if([[self.comboBox stringValue] isEqualToString:@"Human"])
        {
-           useTexture = false;
-           [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool) atIndex:UseTexture];
+           useTexture[0] = false;
+           useTexture[1] = self.isNormals;
+           [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool)*2 atIndex:UseTexture];
            indexMode = true;
            
            [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
@@ -909,10 +982,35 @@ static float factorScaleZ = 1.;
            [renderEncoder setVertexBuffer:self.indexBufferHuman offset:0 atIndex:NormalsIndexBuffer];
            [renderEncoder setVertexBuffer:self.indexBufferHuman offset:0 atIndex:IndexesBuffer];
            [renderEncoder setVertexBuffer:self.indexBufferHuman offset:0 atIndex:ColorIndexBuffer];
-           //        [renderEncoder setVertexBuffer:self.indexBufferHuman offset:0 atIndex:TextureCoords]
            [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:282];
            
        }
+        if([[self.comboBox stringValue] isEqualToString:@"Shadow"])
+        {
+            Vertex vertices[] =
+            {
+                {{ 0., -2., -2.}, {1., 0., 0.}, {1., 1., 0., 1.}},
+                {{ 0., -2., 2.}, {1., 0., 0.}, {1., 0., 1., 1.}},
+                {{ 0.,  2., 2.}, {1., 0., 0.}, {1., 1., 0., 1.}},
+                
+                {{ 0., -2., -2.}, {1., 0., 0.}, {1., 1., 0., 1.}},
+                {{ 0., 2., -2.}, {1., 0., 0.}, {0., 1., 1., 1.}},
+                {{ 0., 2., 2.}, {1., 0., 0.}, {1., 1., 0., 1.}}
+            };
+            
+            useTexture[0] = false;
+            useTexture[1] = self.isNormals;
+            [renderEncoder setFragmentBytes:&useTexture length:sizeof(bool)*2 atIndex:UseTexture];
+            indexMode = false;
+            [renderEncoder setVertexBytes:&indexMode length:sizeof(bool) atIndex:DrawWithIndexes];
+            [renderEncoder setVertexBuffer:[self.device newBufferWithBytes:vertices length:sizeof(vertices) options:MTLResourceStorageModeShared] offset:0 atIndex:MainBuffer];
+            [renderEncoder setVertexBuffer:self.indexBufferHuman offset:0 atIndex:NormalsIndexBuffer];
+            [renderEncoder setVertexBuffer:self.indexBufferHuman offset:0 atIndex:IndexesBuffer];
+            [renderEncoder setVertexBuffer:self.indexBufferHuman offset:0 atIndex:ColorIndexBuffer];
+            [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:282];
+            
+        }
+        
         [renderEncoder endEncoding];
         [commandBuffer presentDrawable:view.currentDrawable];
         [commandBuffer commit];
@@ -920,13 +1018,63 @@ static float factorScaleZ = 1.;
     }
     else
     {
+        struct VertexDoublePass
+        {
+            vector_float2 pos;
+            vector_float2 uv;
+            vector_float4 color;
+        };
+        
+        VertexDoublePass ver[] = {
+            {{1., 1.}, {1., 1.}, {1., 0., 0., 1.}},
+            {{-1., 1.}, {-1., 1.}, {0., 1., 0., 1.}},
+            {{-1., -1.}, {-1., -1.}, {0., 0., 1., 1.}},
+            {{1., 1.}, {1., 1.}, {1., 1., 0., 1.}},
+            {{1., -1.}, {1., -1.}, {0., 1., 1., 1.}},
+            {{-1., -1.}, {-1., -1.}, {1., 0., 1., 1.}}
+        };
+        
         NSString *vertexShaderSource = @"vertexMainDoublePass";
         NSString *gradientFragmentShaderSource = @"fragmentMainGradient";
         NSString *grayscaleFragmentShaderSource = @"fragmentMainGrayscale";
+        NSString *defaultFragmentShaderSource = @"fragmentMainDefault";
         
         id<MTLFunction> vertexFunctionDoublePass = [library newFunctionWithName:vertexShaderSource];
         id<MTLFunction> gradientFragmentFunction = [library newFunctionWithName:gradientFragmentShaderSource];
         id<MTLFunction> grayscaleFragmentFunction = [library newFunctionWithName:grayscaleFragmentShaderSource];
+        id<MTLFunction> defaultFragmentFunction = [library newFunctionWithName:defaultFragmentShaderSource];
+        id<MTLCommandBuffer> commandBuffer2 = [self.device newCommandQueue].commandBuffer;
+        
+        
+        MTLTextureDescriptor *defaultTextureDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:self.metalView.colorPixelFormat
+                                                                                                            width:722
+                                                                                                           height:746
+                                                                                                        mipmapped:NO];
+        defaultTextureDescriptor.usage = MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite;
+        id<MTLTexture> defaultTexture = [self.device newTextureWithDescriptor:defaultTextureDescriptor];
+        
+        MTLRenderPassDescriptor *defaultRenderPassDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
+        defaultRenderPassDescriptor.colorAttachments[0].texture = defaultTexture;
+        defaultRenderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
+        defaultRenderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(1.0, 0.0, 0.0, 1.0);
+        defaultRenderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
+        
+        MTLRenderPipelineDescriptor *defaultPipelineDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
+        defaultPipelineDescriptor.vertexFunction = vertexFunctionDoublePass;
+        defaultPipelineDescriptor.fragmentFunction = gradientFragmentFunction;
+        defaultPipelineDescriptor.colorAttachments[0].pixelFormat = self.metalView.colorPixelFormat;
+        id<MTLRenderPipelineState> defaultPipelineState = [self.device newRenderPipelineStateWithDescriptor:defaultPipelineDescriptor error:&error];
+        
+        id<MTLRenderCommandEncoder> renderEncoder = [commandBuffer2 renderCommandEncoderWithDescriptor:defaultRenderPassDescriptor];
+        [renderEncoder setRenderPipelineState:defaultPipelineState];
+        [renderEncoder setVertexBuffer:[self.device newBufferWithBytes:ver length:sizeof(ver) options:MTLResourceStorageModeShared] offset:0 atIndex:(int)DoublePassDefines::MainBuffer];
+        [renderEncoder setFragmentTexture:self.texturePlane atIndex:(int)DoublePassDefines::FragmentTexture];
+        [renderEncoder setFragmentTexture:self.normalsTexture atIndex:NormalMap];
+        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
+        [renderEncoder endEncoding];
+        
+        
+        
         
         MTLTextureDescriptor *gradientTextureDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:self.metalView.colorPixelFormat
                                                                                                             width:722
@@ -938,7 +1086,7 @@ static float factorScaleZ = 1.;
         MTLRenderPassDescriptor *gradientRenderPassDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
         gradientRenderPassDescriptor.colorAttachments[0].texture = gradientTexture;
         gradientRenderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
-        gradientRenderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 1.0);
+        gradientRenderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(1.0, 0.0, 0.0, 1.0);
         gradientRenderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
         
         MTLRenderPipelineDescriptor *gradientPipelineDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
@@ -946,32 +1094,18 @@ static float factorScaleZ = 1.;
         gradientPipelineDescriptor.fragmentFunction = gradientFragmentFunction;
         gradientPipelineDescriptor.colorAttachments[0].pixelFormat = self.metalView.colorPixelFormat;
         id<MTLRenderPipelineState> gradientPipelineState = [self.device newRenderPipelineStateWithDescriptor:gradientPipelineDescriptor error:&error];
-
-        struct VertexDoublePass
-        {
-            vector_float2 pos;
-            vector_float4 color;
-        };
         
-        VertexDoublePass ver[] = {
-            {{1., 1.}, {1., 0., 0., 1.}},
-            {{-1., 1.}, {0., 1., 0., 1.}},
-            {{-1., -1.}, {0., 0., 1., 1.}},
-            {{1., 1.}, {1., 1., 0., 1.}},
-            {{1., -1.}, {0., 1., 1., 1.}},
-            {{1., 1.}, {1., 0., 1., 1.}}
-        };
-        
-        id<MTLCommandBuffer> commandBuffer2 = [self.commandQueue commandBuffer];
         id<MTLRenderCommandEncoder> renderEncoder2 = [commandBuffer2 renderCommandEncoderWithDescriptor:gradientRenderPassDescriptor];
         [renderEncoder2 setRenderPipelineState:gradientPipelineState];
         [renderEncoder2 setVertexBuffer:[self.device newBufferWithBytes:ver length:sizeof(ver) options:MTLResourceStorageModeShared] offset:0 atIndex:(int)DoublePassDefines::MainBuffer];
+        [renderEncoder2 setFragmentTexture:defaultTexture atIndex:(int)DoublePassDefines::FragmentTexture];
+        [renderEncoder2 setFragmentTexture:self.normalsTexture atIndex:NormalMap];
         [renderEncoder2 drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
         [renderEncoder2 endEncoding];
-        [commandBuffer2 commit];
-        [commandBuffer2 waitUntilCompleted];
+//        [commandBuffer2 commit];
+//        [commandBuffer2 waitUntilCompleted];
         
-        MTLTextureDescriptor *grayscaleTextureDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
+        MTLTextureDescriptor *grayscaleTextureDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:self.metalView.colorPixelFormat
                                                                                                             width:722
                                                                                                            height:746
                                                                                                         mipmapped:NO];
@@ -981,7 +1115,7 @@ static float factorScaleZ = 1.;
         MTLRenderPassDescriptor *grayscaleRenderPassDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
         grayscaleRenderPassDescriptor.colorAttachments[0].texture = grayscaleTexture;
         grayscaleRenderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
-        grayscaleRenderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 1.0);
+        grayscaleRenderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(1.0, 1.0, 1.0, 1.0);
         grayscaleRenderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
 
         MTLRenderPipelineDescriptor *grayscalePipelineDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
@@ -991,19 +1125,17 @@ static float factorScaleZ = 1.;
 
         id<MTLRenderPipelineState> grayscalePipelineState = [self.device newRenderPipelineStateWithDescriptor:grayscalePipelineDescriptor error:&error];
 
-        id<MTLCommandBuffer> commandBuffer3 = [self.commandQueue commandBuffer];
         id<MTLRenderCommandEncoder> renderEncoder3 = [commandBuffer2 renderCommandEncoderWithDescriptor:grayscaleRenderPassDescriptor];
         [renderEncoder3 setRenderPipelineState:grayscalePipelineState];
         [renderEncoder3 setVertexBuffer:[self.device newBufferWithBytes:ver length:sizeof(ver) options:MTLResourceStorageModeShared] offset:0 atIndex:(int)DoublePassDefines::MainBuffer];
-        [renderEncoder3 setFragmentTexture:gradientTexture atIndex:0];
+        [renderEncoder3 setFragmentTexture:gradientTexture atIndex:(int)DoublePassDefines::FragmentTexture];
+        [renderEncoder3 setFragmentTexture:self.normalsTexture atIndex:NormalMap];
         [renderEncoder3 drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
         [renderEncoder3 endEncoding];
-        [commandBuffer3 commit];
-        [commandBuffer3 waitUntilCompleted];
-
+        [commandBuffer2 presentDrawable:view.currentDrawable];
+        [commandBuffer2 commit];
+        [commandBuffer2 waitUntilCompleted];
     }
- 
-
 }
 
 - (void)mtkView:(MTKView *)view drawableSizeWillChange:(CGSize)size
@@ -1038,7 +1170,7 @@ static float factorScaleZ = 1.;
 -(void)mouseDragged:(NSEvent *)event
 {
     NSLog(@"|x drag");
-    if(_isRotate)
+    if(true)
     {
         float tx =  [event locationInWindow].x, ty =  [event locationInWindow].y;
         if(tx>=44. && tx<=44.+766. && ty>=20. && ty<=20.+766.)
@@ -1053,7 +1185,7 @@ static float factorScaleZ = 1.;
             self.lastMousePosition = currentMouseLocation;
         }
     }
-    if(true)
+    if(_isTranslate)
     {
         float tx =  [event locationInWindow].x, ty =  [event locationInWindow].y;
         if(tx>=44. && tx<=44.+766. && ty>=20. && ty<=20.+766.)

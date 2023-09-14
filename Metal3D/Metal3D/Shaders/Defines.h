@@ -11,12 +11,14 @@
 struct VertexInDoublePass
 {
     float2 position [[attribute(0)]];
-    float4 color [[attribute(1)]];
+    float2 textureCoord [[attribute(1)]];
+    float4 color [[attribute(2)]];
 };
 
 struct VertexOutDoublePass
 {
     float4 position [[position]];
+    float2 uv;
     float4 color;
 };
 
@@ -28,6 +30,11 @@ struct VertexIn
     float4 color [[attribute(2)]];
 };
 
+typedef struct {
+    float3 tangent;
+    float3 bitangent;
+} TBN;
+
 struct VertexOut
 {
     float4 position [[position]];
@@ -35,11 +42,14 @@ struct VertexOut
     float2 texCoors;
     float3 normals;
     float4 color;
+    float3 tangent;
+    float3 bitangent;
 };
 
 typedef enum ShaderDefines
 {
     MainBuffer,
+    TanAndBitan,
     IndexesBuffer,
     ColorIndexBuffer,
     NormalsIndexBuffer,
@@ -58,12 +68,17 @@ typedef enum ShaderDefines
     DrawWithIndexes,
     TextureCoords,
     UseTexture,
+    Time,
+    NormalMap,
+    RoughnessMap,
+    DisplacementMap,
+    aoMap,
 } ShaderDefines;
 
 
 enum class DoublePassDefines
 {
-    MainBuffer = 20,
+    MainBuffer = 28,
     FragmentTexture,
 };
 
@@ -86,6 +101,24 @@ struct PointLight {
     float  constantAttenuation;
     float  linearAttenuation;
     float  quadraticAttenuation;
+};
+
+struct Ray {
+  float3 origin;
+  float3 direction;
+};
+
+struct Sphere {
+  float3 center;
+  float radius;
+};
+
+struct Plane {
+  float yCoord;
+};
+
+struct Light {
+  float3 position;
 };
 
 #endif /* Defines_h */

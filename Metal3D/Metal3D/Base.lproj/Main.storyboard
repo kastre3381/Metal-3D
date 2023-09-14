@@ -1551,17 +1551,8 @@
                                 <rect key="frame" x="849" y="230" width="479" height="5"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                             </box>
-                            <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="80w-ja-o5V">
-                                <rect key="frame" x="858" y="205" width="101" height="22"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" borderStyle="bezel" alignment="center" title="Light" bezelStyle="round" id="ppo-Cu-f5l">
-                                    <font key="font" metaFont="system"/>
-                                    <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
-                            </textField>
                             <comboBox verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="jeu-X7-LdO">
-                                <rect key="frame" x="1043" y="202" width="100" height="25"/>
+                                <rect key="frame" x="985" y="201" width="100" height="25"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <comboBoxCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" completes="NO" numberOfVisibleItems="5" id="3RZ-Pq-l3X">
                                     <font key="font" metaFont="system"/>
@@ -1570,6 +1561,18 @@
                                 </comboBoxCell>
                                 <connections>
                                     <action selector="showLightOptionBox:" target="XfG-lQ-9wD" id="ZKi-HN-pDP"/>
+                                </connections>
+                            </comboBox>
+                            <comboBox verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="LuP-WP-8gk">
+                                <rect key="frame" x="1105" y="201" width="100" height="25"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <comboBoxCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" completes="NO" numberOfVisibleItems="5" id="5dW-Rm-JpU">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </comboBoxCell>
+                                <connections>
+                                    <action selector="normalsChooser:" target="XfG-lQ-9wD" id="DkV-Vi-dVG"/>
                                 </connections>
                             </comboBox>
                             <comboBox verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="9fp-Kp-RWj">
@@ -2124,10 +2127,19 @@
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <sliderCell key="cell" state="on" alignment="left" minValue="-100" doubleValue="-50" tickMarkPosition="above" sliderType="linear" id="FQ3-cx-4Z3"/>
                             </slider>
-                            <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Oa2-57-6tf" customClass="MTKView">
-                                <rect key="frame" x="20" y="44" width="747" height="737"/>
+                            <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="zf2-oC-MNg" customClass="MTKView">
+                                <rect key="frame" x="20" y="44" width="790" height="737"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                             </customView>
+                            <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="80w-ja-o5V">
+                                <rect key="frame" x="864" y="204" width="101" height="22"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" borderStyle="bezel" alignment="center" title="Light" bezelStyle="round" id="ppo-Cu-f5l">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
                         </subviews>
                     </view>
                     <connections>
@@ -2136,9 +2148,10 @@
                         <outlet property="animTransOnOff" destination="jQY-bi-fKe" id="OVa-KF-Gxs"/>
                         <outlet property="annimationOnOff" destination="BGp-ec-GiD" id="qxo-vc-jeY"/>
                         <outlet property="comboBox" destination="eVa-ns-nDv" id="dFI-sf-ter"/>
+                        <outlet property="comboBoxNormals" destination="LuP-WP-8gk" id="ssz-LW-AyD"/>
                         <outlet property="comboCubeTexture" destination="SnJ-xd-TZm" id="V3k-n5-qyx"/>
                         <outlet property="comboboxLightOnOff" destination="jeu-X7-LdO" id="7MO-QL-KNd"/>
-                        <outlet property="comboboxLightType" destination="9fp-Kp-RWj" id="k8O-i3-1Ac"/>
+                        <outlet property="comboboxLightType" destination="9fp-Kp-RWj" id="fX3-Li-RXc"/>
                         <outlet property="customView" destination="VJR-Z7-rl6" id="KEW-qU-R2M"/>
                         <outlet property="dirACB" destination="lrx-Ev-nk3" id="lAP-4v-TgS"/>
                         <outlet property="dirACG" destination="2Dj-YU-ojL" id="Aoh-b1-cV5"/>
@@ -2163,7 +2176,6 @@
                         <outlet property="m_ScaleXSlider" destination="TS9-hP-cq1" id="fHm-Wf-zgS"/>
                         <outlet property="m_ScaleYSlider" destination="yp9-Dh-48a" id="KwB-N5-4uO"/>
                         <outlet property="m_ScaleZSlider" destination="qS6-QG-8ak" id="cng-lU-aVs"/>
-                        <outlet property="m_SliderTrans" destination="j5s-Kq-nKo" id="YCf-Vw-oes"/>
                         <outlet property="m_TransXSlider" destination="j5s-Kq-nKo" id="f08-Nl-GuH"/>
                         <outlet property="m_TransYSlider" destination="cuK-tl-AY8" id="3Q0-0f-Jht"/>
                         <outlet property="m_TransZSlider" destination="TNR-PD-XxG" id="NuH-EZ-a52"/>
@@ -2196,15 +2208,9 @@
                         <outlet property="rotRightBot" destination="nUU-rS-r11" id="SYX-gF-Wmm"/>
                         <outlet property="rotRightMid" destination="NZB-bA-AlB" id="z4u-9D-Dy1"/>
                         <outlet property="rotRightTop" destination="7ID-25-7E1" id="HxQ-NJ-7S2"/>
-                        <outlet property="scaleLeftBot" destination="mPF-ag-zbQ" id="iUC-9I-P90"/>
-                        <outlet property="scaleLeftMid" destination="tDo-2Y-2E7" id="8Z5-TQ-Jgq"/>
                         <outlet property="scaleLeftTop" destination="tcd-cF-W9E" id="hrF-fj-SAp"/>
-                        <outlet property="scaleMidBot" destination="hu0-4m-UiA" id="wX9-jL-Bmg"/>
                         <outlet property="scaleMidMid" destination="PPw-ax-x52" id="k7y-JR-7jq"/>
-                        <outlet property="scaleMidTop" destination="McE-eM-elG" id="e5B-zi-e4z"/>
                         <outlet property="scaleRightBot" destination="qfv-2N-E2g" id="ITq-2U-1uy"/>
-                        <outlet property="scaleRightMid" destination="nB3-aB-WSm" id="B9Q-TS-qo6"/>
-                        <outlet property="scaleRightTop" destination="jJU-b8-xIr" id="U0e-4Y-h4h"/>
                         <outlet property="testureOnOff" destination="a1C-0r-9Ou" id="1gO-3D-Ue9"/>
                         <outlet property="transX" destination="fwR-Hu-YZF" id="OCg-EX-8TV"/>
                         <outlet property="transY" destination="i0K-kY-4Os" id="3xp-oj-L2G"/>
