@@ -195,6 +195,51 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     {
         Vertex vertices[] =
         {
+// TODO: przyklad
+//
+// tryb indeksowy drawIndexedPrimitives:, potrzebna tablica z indeksami
+//            uint indexes[] = {
+//                0, 1, 2, 0, 2, 3, .... }
+            
+//            Vertex vertices[] =
+//            {
+//            // vert,              norm,       uv,         tan,     bitan = (+/-)cross(norm, tan)
+//            {{-0.5, -0.5, 0.5}, {0.,0.,1.}, {0., 0.}, {1., 0., 0.} },    //0
+//            {{ 0.5, -0.5, 0.5}, {0.,0.,1.}, {1., 0.}, {1., 0., 0.} },   //1
+//            {{ 0.5,  0.5, 0.5}, {0.,0.,1.}, {1., 1.}, {1., 0., 0.} },    //2
+//            {{-0.5,  0.5, 0.5}, {0.,0.,1.}, {0., 1.}, {1., 0., 0.} },   //3
+//              .... }
+            
+            // tryb zwykły         [renderEncoder3 drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
+//
+//            Vertex vertices[] =
+//            {
+//            // vert,              norm,       uv,         tan,     bitan = (+/-)cross(norm, tan)
+//            {{-0.5, -0.5, 0.5}, {0.,0.,1.}, {0., 0.}, {1., 0., 0.} },    //0
+//            {{ 0.5, -0.5, 0.5}, {0.,0.,1.}, {1., 0.}, {1., 0., 0.} },   //1
+//            {{ 0.5,  0.5, 0.5}, {0.,0.,1.}, {1., 1.}, {1., 0., 0.} },    //2
+
+//            {{ 0.5, -0.5, 0.5}, {0.,0.,1.}, {1., 0.}, {1., 0., 0.} },   //1
+//            {{ 0.5,  0.5, 0.5}, {0.,0.,1.}, {1., 1.}, {1., 0., 0.} },    //2
+//            {{-0.5,  0.5, 0.5}, {0.,0.,1.}, {0., 1.}, {1., 0., 0.} },   //3
+//              .... }
+            
+            
+            
+            
+            // tryb zwykły         [renderEncoder3 drawPrimitives:MTLPrimitiveTypeTriangleStrip vertexStart:0 vertexCount:4];
+            //            Vertex vertices[] =
+            //            {
+            //            // vert,              norm,       uv,         tan,     bitan = (+/-)cross(norm, tan)
+            //            {{-0.5, -0.5, 0.5}, {0.,0.,1.}, {0., 0.}, {1., 0., 0.} },    //0
+            //            {{ 0.5,  0.5, 0.5}, {0.,0.,1.}, {1., 1.}, {1., 0., 0.} },    //2
+            //            {{ 0.5, -0.5, 0.5}, {0.,0.,1.}, {1., 0.}, {1., 0., 0.} },   //1
+            //            {{-0.5,  0.5, 0.5}, {0.,0.,1.}, {0., 1.}, {1., 0., 0.} },   //3
+            //              .... }
+            
+            
+            
+            
             {{-0.5, -0.5, 0.5}, {0., 0., 1.}, {1., 0., 0., 1.}},    //0
             {{ 0.5, -0.5, 0.5}, {0., 0., -1.}, {0., 1., 0., 1.}},   //1
             {{ 0.5,  0.5, 0.5}, {0., 1., 0.}, {0., 0., 1., 1.}},    //2
@@ -520,7 +565,7 @@ vector_float3 calculateNormalToTorus(float rin, float rout, float iangle, float 
     }
     
     [self.view addSubview:self.metalView];
-    self.textureCube = [self loadTextureWithImageNamed:@"diffuse"];
+    self.textureCube = [self loadTextureWithImageNamed:@"test_uv"];
     self.textureCubeDisplacement = [self loadTextureWithImageNamed:@"displacement"];
     self.textureCubeRough = [self loadTextureWithImageNamed:@"rough"];
     self.textureCubeNormal = [self loadTextureWithImageNamed:@"normal"];
@@ -737,7 +782,7 @@ static float factorScaleZ = 1.;
        
        
        
-       float angles[3];
+       float angles[4];
        angles[0] = 2.*M_PI/360.*[self.m_RotationXSlider floatValue];
        angles[1] = 2.*M_PI/360.*[self.m_RotationYSlider floatValue];
        angles[2] = 2.*M_PI/360.*[self.m_RotationZSlider floatValue];
@@ -1179,8 +1224,8 @@ static float factorScaleZ = 1.;
             float deltaX = currentMouseLocation.x - self.lastMousePosition.x;
             float deltaY = currentMouseLocation.y - self.lastMousePosition.y;
 
-            [self.m_RotationXSlider setFloatValue:[self.m_RotationXSlider floatValue]+deltaX];
-            [self.m_RotationYSlider setFloatValue:[self.m_RotationYSlider floatValue]+deltaY];
+            [self.m_RotationXSlider setFloatValue:[self.m_RotationXSlider floatValue]-deltaY];
+            [self.m_RotationYSlider setFloatValue:[self.m_RotationYSlider floatValue]+deltaX];
             
             self.lastMousePosition = currentMouseLocation;
         }

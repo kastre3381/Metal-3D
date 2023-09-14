@@ -47,7 +47,7 @@ TBN computeTBN(float3 v0, float3 v1, float3 v2,   // vertex positions
 
 vertex VertexOut vertexMain(const device VertexIn* vertexArray [[buffer(MainBuffer)]],
                             unsigned int vertexID [[vertex_id]],
-                            constant float3& angles [[buffer(RotationAngles)]],
+                            constant float4& angles [[buffer(RotationAngles)]],
                             constant float3& scale [[buffer(ScaleFactors)]],
                             constant float3& translation [[buffer(TranslationFactors)]],
                             constant float4& directions [[buffer(ProjectionDirections)]],
@@ -104,6 +104,40 @@ vertex VertexOut vertexMain(const device VertexIn* vertexArray [[buffer(MainBuff
         vertexOut.bitangent = tbnMat.bitangent;
     }
     
+    if (vertexArray[newNormalID].normals.x == 1)
+    {
+        vertexOut.texCoors.x *= -1.;
+
+        vertexOut.tangent   = float3(0, 0., 1.);
+        vertexOut.bitangent = float3(0, -1., 0.);
+    }
+    else if (vertexArray[newNormalID].normals.x == -1)
+    {
+        vertexOut.tangent   = float3(0, 0., -1.);
+        vertexOut.bitangent = float3(0, -1., 0.);
+    }
+//    else if (vertexArray[newNormalID].normals.y == 1)
+//    {
+//        vertexOut.tangent   = float3(1, 0., 0.);
+//        vertexOut.bitangent = float3(0, 0., 1.);
+//    }
+//    else if (vertexArray[newNormalID].normals.y == -1)
+//    {
+//        vertexOut.tangent   = float3(1, 0., 0.);
+//        vertexOut.bitangent = float3(0, 0., 1.);
+//    }
+//    else if (vertexArray[newNormalID].normals.z == 1)
+//    {
+//        vertexOut.tangent   = float3(1, 0., 0.);
+//        vertexOut.bitangent = float3(0, 1., 0.);
+//    }
+    else
+    {
+//        vertexOut.tangent   = float3(1, 0., 0.);
+//        vertexOut.bitangent = float3(0, 1., 0.);
+        vertexOut.tangent = vertexOut.bitangent = vertexArray[newNormalID].normals;
+    }
+    
     float4 posMain = float4(vertexArray[newVertexID].position, 1.);
     
     float4x4 matTr = float4x4(float4(1., 0., 0., translation.x),
@@ -116,28 +150,32 @@ vertex VertexOut vertexMain(const device VertexIn* vertexArray [[buffer(MainBuff
                                 float4(0., 0., scale.z, 0.),
                                 float4(0., 0., 0., 1.));
     
-    float sinZ = sin(angles.y);
-    float cosZ = cos(angles.y);
     
-    float4x4 matRotZ = float4x4(float4(sinZ, cosZ, 0., 0.),
-                                float4(-cosZ, sinZ, 0., 0.),
-                                float4(0.,      0., 1., 0.),
-                                float4(0.,      0., 0., 1.));
     
     float sinX = sin(angles.x);
     float cosX = cos(angles.x);
     float4x4 matRotX = float4x4(float4(1., 0., 0., 0.),
-                                float4(0., sinX, cosX, 0.),
-                                float4(0., -cosX, sinX, 0.),
+                                float4(0., cosX, -sinX, 0.),
+                                float4(0., sinX,  cosX, 0.),
                                 float4(0., 0., 0., 1.));
     
     float sinY = sin(angles.y);
     float cosY = cos(angles.y);
     
-    float4x4 matRotY = float4x4(float4(sinY, 0.,  cosY, 0.),
+    float4x4 matRotY = float4x4(float4(cosY, 0.,  sinY, 0.),
                                 float4(0., 1,     0., 0.),
-                                float4(-cosY, 0., sinY, 0.),
+                                float4(-sinY, 0., cosY, 0.),
                                 float4(0., 0.,    0., 1.));
+    
+    float sinZ = sin(angles.z);
+    float cosZ = cos(angles.z);
+    
+    float4x4 matRotZ = float4x4(float4( cosZ, -sinZ, 0., 0.),
+                                float4( sinZ,  cosZ, 0., 0.),
+                                float4(0.,      0., 1., 0.),
+                                float4(0.,      0., 0., 1.));
+    
+    float4x4 matRot = matRotY * matRotX * matRotZ;
     
     
     float4x4 matProj = float4x4(float4(2.*nearFar.x/(directions.y-directions.x), 0., (directions.y+directions.x)/(directions.y-directions.x), 0.),
@@ -149,28 +187,28 @@ vertex VertexOut vertexMain(const device VertexIn* vertexArray [[buffer(MainBuff
     
     float4x4 mat;
     if(!isPlot[0])
-        mat = matRotZ * matRotY * matRotX * matTr * matSc * matProj;
+        mat = matRot * matTr * matSc * matProj;
     else
         mat = float4x4(float4(10., 0., 0., 0.),
                         float4(0., 10., 0., 0.),
                         float4(0., 0., 10., 0.),
-                        float4(0., 0., 0., 1.)) * matRotZ * matRotY * matRotX;
+                        float4(0., 0., 0., 1.)) * matRot;
     
     vertexOut.position = posMain * mat;
     //    mat * posMain;
-    vertexOut.posBef = posMain * matRotZ * matRotY * matRotX * matTr * matSc;
+    vertexOut.posBef = posMain * matRot * matTr * matSc;
     //float4(pos1, pos2, pos3, w);
     vertexOut.color = vertexArray[newColorID].color;
     vertexOut.normals =// vertexArray[vertexID].normals;
-    float3(float4(vertexArray[newNormalID].normals, 0.)*matRotZ * matRotY * matRotX * matTr * matSc);
+    float3(float4(vertexArray[newNormalID].normals, 0.)*matRot * matSc);
     
-    vertexOut.tangent = float3(float4(vertexOut.tangent, 0.)*matRotZ * matRotY * matRotX * matTr * matSc);
-    vertexOut.bitangent = float3(float4(vertexOut.bitangent, 0.)*matRotZ * matRotY * matRotX * matTr * matSc);
+    vertexOut.tangent = float3(float4(vertexOut.tangent, 0.)*matRot * matSc);
+    vertexOut.bitangent = float3(float4(vertexOut.bitangent, 0.)*matRot * matSc);
     
     if(isPlot[1])
         vertexOut.color = float4(2.*posMain.x, 2.*posMain.y, 2.*posMain.z, 1.);
     
-    vertexOut.texCoors = textCoord[vertexID];
+//    vertexOut.texCoors = textCoord[vertexID];
 
     return vertexOut;
     

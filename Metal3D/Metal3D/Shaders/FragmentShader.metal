@@ -170,11 +170,22 @@ fragment float4 fragmentMain(VertexOut current [[stage_in]],
     
     float3 normalFromMap = 2.0 * normalMap.sample(samp, current.texCoors).xyz - 1.0;
 
-    // Convert normals from tangent space to object space
-    float3x3 tbn = float3x3(normalize(current.tangent), normalize(current.bitangent), normalize(normalFromMap));
-    float3 normal = normalize(tbn * normalFromMap);
+    return texture.sample(samp, current.texCoors);
     
-//    return float4(normal, 1.);
+//    return float4(current.texCoors.xy, 0., 1.);
+    
+//    return float4(current.tangent*0.5+0.5, 1.);
+    
+    // Convert normals from tangent space to object space
+    
+    float3x3 tbn = (float3x3(normalize(current.tangent), normalize(current.bitangent), normalize(current.normals)));
+    float3 normal = normalize(normalFromMap * tbn);
+    
+//    if (all(current.tangent == current.bitangent)) {
+//        normal = current.normals;
+//    }
+    
+    return float4(normal*0.5+0.5, 1.);
     
     float roughness;
     float ao;
